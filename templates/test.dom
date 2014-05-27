@@ -1,0 +1,9 @@
+{{#if foo}}
+    {{#if bar}}
+        <a>Hello!</a>
+    {{#else}}
+        <b>Other!</b>
+    {{/if}}
+{{#else}}
+    <b>There!</b>
+{{/if}}

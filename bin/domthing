@@ -1,0 +1,42 @@
+#!/usr/bin/env node
+
+var fs = require('fs');
+var path = require('path');
+var glob = require('glob');
+var async = require('async');
+
+var parser = require('../parser');
+var compiler = require('../compiler');
+
+var root = path.join(process.cwd(), process.argv[2]);
+var match = path.join(root, '**', '*.dom');
+
+glob(match, function (err, paths) {
+    if (err) throw err;
+    async.map(
+        paths,
+        function (p, next) {
+            var tmpl = fs.readFileSync(p);
+            parser(tmpl, function (err, ast) {
+                if (err) return next(err);
+                var compiled = compiler.precompileAST(ast);
+
+                var parts = path.relative(root, p).split(path.sep);
+                var name = parts[parts.length - 1].split('.')[0];
+
+                next(null, "module.exports['" + name + "'] = " + compiled + ';');
+            });
+        }, function (err, outputs) {
+            if (err) throw err;
+            fs.writeFileSync(path.join(process.cwd(), 'templates.js'), outputs.join('\n'));
+        }
+    );
+});
+
+
+//var tmpl = fs.readFileSync(path.join(process.cwd(), process.argv[2]);
+//var ast = parser(tmpl);
+//var compiled = compiler.precompileAST(ast);
+//
+//
+//module.exports = 
