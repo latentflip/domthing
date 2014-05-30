@@ -18,7 +18,7 @@ var precompileAndAppend = function (ast, context, helpers, cb) {
 
     var inject = deval(function (strFn, context) {
         var tmpl = $strFn$;
-        var fragment = tmpl($context$, window.RUNTIME.helpers);
+        var fragment = tmpl($context$, window.RUNTIME);
         document.querySelector('#output').appendChild(fragment);
     }, strFn, JSON.stringify(context));
 
@@ -75,6 +75,17 @@ test('compiles textNodes', function (t) {
             t.end();
         });
     });
+});
+
+
+test('compiles expressions', function (t) {
+    parser('<a>foo {{bar}} baz</a>', function (err, ast) {
+        precompileAndAppend(ast, {bar: 'Hello!'}, builtinHelpers, function (err, window) {
+            var el = window.document.querySelector('a');
+            t.equal(el.innerHTML, 'foo Hello! baz');
+            t.end();
+        });
+   });
 });
 
 test('compiles siblings', function (t) {

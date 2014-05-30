@@ -6,10 +6,18 @@ function indent(d, s) {
 
 function precompileTextNode(element, o) {
     o = o || {};
-    return [
-        indent(o.depth, "var node = document.createTextNode('" + element.content + "');"),
-        indent(o.depth, "parent.appendChild(node);")
-    ];
+    if (typeof element.content === 'string') {
+        return [
+            indent(o.depth, "var node = document.createTextNode('" + element.content + "');"),
+            indent(o.depth, "parent.appendChild(node);")
+        ];
+    } else {
+        return[
+            indent(o.depth, "var node = document.createTextNode('');"),
+            indent(o.depth, "runtime.helpers.textBinding.call(template, node, context, '" + element.content.expression + "');"),
+            indent(o.depth, "parent.appendChild(node);")
+        ];
+    }
 }
 
 function precompileElement(element, o) {
@@ -22,13 +30,20 @@ function precompileElement(element, o) {
     var postlude = [
         indent(o.depth, "parent.appendChild(element);")
     ];
-    
+
     var body = [];
 
     Object.keys(element.attributes).forEach(function (attrName) {
-        body.push(
-            indent(o.depth, "element.setAttribute('" + attrName + "', '" + element.attributes[attrName] + "');")
-        );
+        if (element.attributes[attrName].type === 'Expression') {
+            var expression = element.attributes[attrName].expression;
+            body.push(
+                indent(o.depth, "runtime.helpers.attribute.call(template, element, context, '" + attrName + "', '" + expression + "');")
+            );
+        } else {
+            body.push(
+                indent(o.depth, "element.setAttribute('" + attrName + "', '" + element.attributes[attrName] + "');")
+            );
+        }
     });
 
     if (element.children.length) {
@@ -45,7 +60,7 @@ function precompileElement(element, o) {
 function precompileBlock(node, o) {
     o = o || {};
     var prelude = [
-        indent(o.depth, "helpers['" + node.blockType + "']("),
+        indent(o.depth, "runtime.helpers['" + node.blockType + "'].call(template,"),
         indent(o.depth + 1, "parent,"),
         indent(o.depth + 1, "context,"),
         indent(o.depth + 1, "'" + node.expression + "',")
@@ -82,12 +97,12 @@ module.exports.precompileAST = function (ast, o) {
     o.depth = o.depth || 1;
 
     var prelude = [
-        indent(o.depth, "function (context, helpers) {"),
-        indent(o.depth + 1, "var element = document.createDocumentFragment();")
+        indent(o.depth, "function (context, runtime) {"),
+        indent(o.depth + 1, "var template = new runtime.Template();")
     ];
-    
+
     var postlude = [
-        indent(o.depth + 1, "return element"),
+        indent(o.depth + 1, "return template;"),
         indent(o.depth, "}")
     ];
 
@@ -97,7 +112,7 @@ module.exports.precompileAST = function (ast, o) {
     ast.children.forEach(function (node) {
         body = body.concat(precompileNode(node, { depth: o.depth + 2 }));
     });
-    body.push(indent(o.depth + 1, "})(element);"));
+    body.push(indent(o.depth + 1, "})(template.html);"));
 
     return prelude.concat(body).concat(postlude).join('\n');
 };

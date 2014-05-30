@@ -1,0 +1,11 @@
+<h1 class="foo" style="{{me.leftStyle}}">{{ me.name }}</h1>
+
+{{#if me.profile }}
+    <h2>Profile</h2>
+    <ul style="{{me.profile.style}}">
+        <li>age: {{me.profile.age}}
+        <li>height: {{me.profile.height}}
+    </ul>
+{{/if}}
+
+<div role=collection></div>

@@ -2,17 +2,36 @@ var DomHandler = require('domhandler');
 var htmlparser = require('htmlparser2');
 
 var REGEXES = {
-    block: /{{\s*(#|\/)\s*([^}]*)}}/,
-    splitter: /{{\s*(#|\/)\s*([^}]*)}}/g
+    block: /{{\s*(#|\/)?\s*([^}]*)}}/,
+    splitter: /{{*([^}]*)}}/g,
+    simpleExpression: /{{\s*([^}]*)\s*}}/,
 };
+
+function parseSimpleExpression(string) {
+    var match = string.match(REGEXES.simpleExpression);
+    if (!match) return string;
+
+    return {
+        type: 'Expression',
+        expression: match[1]
+    };
+}
 
 function parseHelper(node) {
     var match = node.data.match(REGEXES.block);
     var start = match[1] === '#';
     var innerMatch = match[2].trim();
     var blockType, expression;
-
-    if (start) {
+    switch(match[1]) {
+    case undefined:
+        return {
+            type: 'TextNode',
+            content: {
+                type: 'Expression',
+                expression: innerMatch
+            }
+        };
+    case "#":
         var parts = innerMatch.split(' ');
         blockType = parts.shift();
         expression = parts.join(' ');
@@ -27,7 +46,8 @@ function parseHelper(node) {
                 expression: expression
             };
         }
-    } else {
+        break;
+    case '/':
         blockType = innerMatch;
         return {
             type: 'BlockEnd',
@@ -49,20 +69,24 @@ function parseTextNode(node) {
         function (str) {
             return {
                 type: 'TextNode',
-                content: str.trim()
+                content: str
             };
         }
     );
 }
 
 function parseElement(el) {
-    var attributes = el.attribs;
+    var attributes = {};
     var children = [];
 
     el.children.forEach(function (node) {
         children = children.concat(parseNode(node));
     });
-    
+
+    Object.keys(el.attribs).forEach(function (attrName) {
+        attributes[attrName] = parseSimpleExpression(el.attribs[attrName]);
+    });
+
     return {
         type: 'Element',
         tagName: el.name,

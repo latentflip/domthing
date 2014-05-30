@@ -1,9 +1,15 @@
+<p>aString: {{aString}}</p>
+<p>aModel.foo: {{aModel.foo}}</p>
+
 {{#if foo}}
     {{#if bar}}
-        <a>Hello!</a>
+        <p>Hello!</p>
+        <p>aString: {{aString}}</p>
     {{#else}}
-        <b>Other!</b>
+        <p><b>Other!</b></p>
+        <p>aString: {{aString}}</p>
     {{/if}}
 {{#else}}
-    <b>There!</b>
+    <p><b>There!</b></p<
+    <p>aString: {{aString}}</p>
 {{/if}}

@@ -1,0 +1,37 @@
+{
+  "name": "domthing",
+  "version": "0.0.0",
+  "description": "This is a thing, that does things with the dom. One day it might be a real thing. Maybe it won't.",
+  "main": "compiler.js",
+  "directories": {
+    "test": "test"
+  },
+  "dependencies": {
+    "async": "^0.9.0",
+    "browserify": "^4.1.5",
+    "deval": "^0.1.1",
+    "domhandler": "^2.2.0",
+    "domify": "^1.2.2",
+    "esprima": "^1.2.2",
+    "glob": "^4.0.0",
+    "htmlparser2": "^3.7.2",
+    "jsdom": "^0.10.5",
+    "key-tree-store": "^0.1.0",
+    "tape": "^2.13.1"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/latentflip/domthing"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/latentflip/domthing/issues"
+  },
+  "homepage": "https://github.com/latentflip/domthing",
+  "bin": "bin/domthing"
+}

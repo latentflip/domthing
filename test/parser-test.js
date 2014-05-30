@@ -31,6 +31,36 @@ test('parses simple tags', function (t) {
     });
 });
 
+test('parses simple expressions', function (t) {
+    t.astEqual('<a>foo {{bar}} baz</a>', {
+        type: 'Template',
+        children: [
+            {
+                type: 'Element',
+                tagName: 'a',
+                attributes: {},
+                children: [
+                    {
+                        type: 'TextNode',
+                        content: 'foo ',
+                    },
+                    {
+                        type: 'TextNode',
+                        content: {
+                            type: 'Expression',
+                            expression: 'bar'
+                        }
+                    },
+                    {
+                        type: 'TextNode',
+                        content: ' baz',
+                    }
+                ]
+            }
+        ]
+    });
+});
+
 test('parses attributes', function (t) {
     t.astEqual("<a href='foo' class='bar' id='baz'></a>", {
         type: 'Template',
@@ -42,6 +72,26 @@ test('parses attributes', function (t) {
                     href: 'foo',
                     class: 'bar',
                     id: 'baz'
+                },
+                children: []
+            }
+        ]
+    });
+});
+
+test('parses expressions in attributes', function (t) {
+    t.astEqual("<a href='{{foo}}' class='bar'></a>", {
+        type: 'Template',
+        children: [
+            {
+                type: 'Element',
+                tagName: 'a',
+                attributes: {
+                    href: {
+                        type: 'Expression',
+                        expression: 'foo',
+                    },
+                    class: 'bar'
                 },
                 children: []
             }
@@ -220,13 +270,13 @@ test('handles blocks in text', function (t) {
                 body: [
                     {
                         type: 'TextNode',
-                        content: 'hello'
+                        content: ' hello '
                     }
                 ],
                 alternate: [
                     {
                         type: 'TextNode',
-                        content: 'goodbye'
+                        content: ' goodbye '
                     }
                 ]
             }
