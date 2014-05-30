@@ -15,7 +15,7 @@ serve-demo: force
 	beefy demo.js --open
 
 serve-ampersand-demo: force
-	beefy switch.js --cwd ./ampersand-demo --open
+	beefy index.js --cwd ./ampersand-demo --open
 
 test: runtime.bundle.js
 	faucet

@@ -1,15 +1,1 @@
-<p>aString: {{aString}}</p>
-<p>aModel.foo: {{aModel.foo}}</p>
-
-{{#if foo}}
-    {{#if bar}}
-        <p>Hello!</p>
-        <p>aString: {{aString}}</p>
-    {{#else}}
-        <p><b>Other!</b></p>
-        <p>aString: {{aString}}</p>
-    {{/if}}
-{{#else}}
-    <p><b>There!</b></p<
-    <p>aString: {{aString}}</p>
-{{/if}}
+<a class="static {{ foo }} {{ bar }}"></a>

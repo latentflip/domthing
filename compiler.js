@@ -34,7 +34,14 @@ function precompileElement(element, o) {
     var body = [];
 
     Object.keys(element.attributes).forEach(function (attrName) {
-        if (element.attributes[attrName].type === 'Expression') {
+        if (element.attributes[attrName].type === 'CombineExpression') {
+            var name = element.attributes[attrName].name;
+            var args = element.attributes[attrName].arguments;
+
+            body.push(
+                indent(o.depth, "runtime.helpers.combine.call(template, element, context, '" + attrName + "', '" + name + "', " + JSON.stringify(args) + ');')
+            );
+        } else if (element.attributes[attrName].type === 'Expression') {
             var expression = element.attributes[attrName].expression;
             body.push(
                 indent(o.depth, "runtime.helpers.attribute.call(template, element, context, '" + attrName + "', '" + expression + "');")
@@ -98,11 +105,14 @@ module.exports.precompileAST = function (ast, o) {
 
     var prelude = [
         indent(o.depth, "function (context, runtime) {"),
+        indent(o.depth + 1, "runtime = runtime || this._runtime;"),
         indent(o.depth + 1, "var template = new runtime.Template();")
     ];
 
     var postlude = [
-        indent(o.depth + 1, "return template;"),
+        indent(o.depth + 1, "var firstChild = template.html.firstChild;"),
+        indent(o.depth + 1, "firstChild.update = template.update.bind(template);"),
+        indent(o.depth + 1, "return firstChild;"),
         indent(o.depth, "}")
     ];
 

@@ -1,5 +1,6 @@
 var DomHandler = require('domhandler');
 var htmlparser = require('htmlparser2');
+var splitter = require('./split-and-keep-splitter');
 
 var REGEXES = {
     block: /{{\s*(#|\/)?\s*([^}]*)}}/,
@@ -7,13 +8,45 @@ var REGEXES = {
     simpleExpression: /{{\s*([^}]*)\s*}}/,
 };
 
+/*
+ * class="foo {{bar}} baz" 
+ *
+ *
+ */
+
 function parseSimpleExpression(string) {
+    string = string.trim();
     var match = string.match(REGEXES.simpleExpression);
+
+    //class="foo"
     if (!match) return string;
 
+    //class="{{foo}}"
+    if (match[0] === string) {
+        return {
+            type: 'Expression',
+            expression: match[1].trim()
+        };
+    }
+    
+    var args = splitter(
+        string,
+        REGEXES.splitter,
+        function (str) {
+            return parseSimpleExpression(str);
+        },
+        function (str) {
+            return {
+                type: 'Literal',
+                value: str
+            };
+        }
+    );
+
     return {
-        type: 'Expression',
-        expression: match[1]
+        type: 'CombineExpression',
+        name: 'concat',
+        arguments: args
     };
 }
 
@@ -56,7 +89,6 @@ function parseHelper(node) {
     }
 }
 
-var splitter = require('./split-and-keep-splitter');
 
 //FIXME: probably won't handle whitespace in {{foo}} {{bar}}
 function parseTextNode(node) {
@@ -101,7 +133,9 @@ function parseNode(node) {
         text: parseTextNode
     };
 
-    var parsed = map[node.type](node);
+    var parsed;
+    if (!map[node.type]) return [];
+    parsed = map[node.type](node);
     if (!Array.isArray(parsed)) parsed = [parsed];
 
     return parsed;

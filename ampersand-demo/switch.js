@@ -1,4 +1,4 @@
-runtime = require('../runtime');
+var runtime = require('../runtime');
 var State = require('ampersand-state');
 
 var Profile = State.extend({
@@ -56,10 +56,10 @@ setInterval(function () {
 function addPerson () {
     var t = templates.person({
         me: me
-    }, window.runtime);
+    });
     window.t = t;
 
-    document.body.appendChild(t.html);
+    document.body.appendChild(t);
 
     me.on('all', function (name, model, value) {
         if (name.match(/^change:/)) {
@@ -69,4 +69,5 @@ function addPerson () {
 }
 
 var templates = require('../templates');
+templates._runtime = runtime;
 addPerson();

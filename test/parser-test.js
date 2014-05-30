@@ -99,6 +99,43 @@ test('parses expressions in attributes', function (t) {
     });
 });
 
+test('parses concat expressions in attributes', function (t) {
+    t.astEqual("<a class='foo {{foo}} bar {{bar}}'></a>", {
+        type: 'Template',
+        children: [
+            {
+                type: 'Element',
+                tagName: 'a',
+                attributes: {
+                    class: {
+                        type: 'CombineExpression',
+                        name: 'concat',
+                        arguments: [
+                            {
+                                type: 'Literal',
+                                value: 'foo '
+                            },
+                            {
+                                type: 'Expression',
+                                expression: 'foo'
+                            },
+                            {
+                                type: 'Literal',
+                                value: ' bar '
+                            },
+                            {
+                                type: 'Expression',
+                                expression: 'bar'
+                            }
+                        ]
+                    }
+                },
+                children: []
+            }
+        ]
+    });
+});
+
 test('parses text nodes', function (t) {
     t.astEqual("<a>foo</a>", {
         type: 'Template',

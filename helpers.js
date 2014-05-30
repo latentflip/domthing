@@ -1,10 +1,43 @@
 var reduceKeypath = require('./lib/reduce-keypath');
+var streamCombiner = require('./lib/tiny-stream-combiner');
 
-module.exports.textBinding = function (node, context, expression) {
-    this.addCallback(expression, function (value) {
+var combinators = module.exports.combinators = {
+    concat: function (/*args...*/) {
+        return [].join.apply(arguments, ' ');
+    }
+};
+
+module.exports.combine = function (node, context, attributeName, method, args) {
+    var expressions = [];
+    var keys = args;
+    var vals = args.map(function (v) {
+        if (v.type === 'Literal') return v.value;
+        if (v.type === 'Expression') {
+            expressions.push(v.expression);
+            return reduceKeypath(context, v.expression);
+        }
+    });
+    
+    if (!combinators[method]) throw new Error('Unknown combinator: "' + method + '"');
+
+    var combiner = streamCombiner(keys, vals, combinators[method]);
+    combiner.on('change', function (newValue) {
+        node.setAttribute(attributeName, newValue);
+    });
+    node.setAttribute(attributeName, combiner.value);
+
+    expressions.forEach(function () {
+        this.addCallback(expression, function (value) {
+            combiner[expression] = value;
+        });
+    }.bind(this));
+};
+
+module.exports.textBinding = function (node, context, keypath) {
+    this.addCallback(keypath, function (value) {
         node.data = value;
     });
-    node.data = reduceKeypath(context, expression);
+    node.data = reduceKeypath(context, keypath);
 };
 
 module.exports.attribute = function (node, context, attributeName, expression) {

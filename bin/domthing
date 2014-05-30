@@ -24,11 +24,18 @@ glob(match, function (err, paths) {
                 var parts = path.relative(root, p).split(path.sep);
                 var name = parts[parts.length - 1].split('.')[0];
 
-                next(null, "module.exports['" + name + "'] = " + compiled + ';');
+                next(null, "templates['" + name + "'] = " + compiled + '.bind(templates);');
             });
         }, function (err, outputs) {
             if (err) throw err;
-            fs.writeFileSync(path.join(process.cwd(), 'templates.js'), outputs.join('\n'));
+
+            var file = [
+                "var templates = {};",
+            ].concat(outputs).concat([
+                "module.exports = templates;"
+            ]);
+
+            fs.writeFileSync(path.join(process.cwd(), 'templates.js'), file.join('\n'));
         }
     );
 });

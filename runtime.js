@@ -9,6 +9,9 @@ KeyTreeStore.prototype.keys = function (keypath) {
 var reduceKeypath = require('./lib/reduce-keypath');
 
 function relativeKeypath(from, to) {
+    from = from.trim();
+    to = to.trim();
+
     if (to.indexOf(from + '.') !== 0) {
         throw new Error('Cannot get to "' + to + '" from "' + from + '"');
     }
@@ -20,6 +23,8 @@ function Template () {
     this._changes = {};
     this.html = document.createDocumentFragment();
     this.renderQueued = false;
+    window.templates = window.templates || [];
+    window.templates.push(this);
 }
 
 Template.prototype.update = function (keypath, value) {

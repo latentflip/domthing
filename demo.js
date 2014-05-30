@@ -11,7 +11,6 @@ var data = {
 };
 
 document.addEventListener('DOMContentLoaded', function () {
-    console.log(data);
     var template = templates.test(data, runtime);
     document.body.appendChild(template.html);
     setInterval(function () {

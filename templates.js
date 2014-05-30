@@ -1,4 +1,6 @@
-module.exports['person'] = function (context, runtime) {
+var templates = {};
+templates['person'] = function (context, runtime) {
+  runtime = runtime || this._runtime;
   var template = new runtime.Template();
   (function (parent) {
     var element = document.createElement('h1');
@@ -48,97 +50,24 @@ module.exports['person'] = function (context, runtime) {
       function (parent) {
       }
     )
+    var element = document.createElement('div');
+    element.setAttribute('role', 'collection');
+    parent.appendChild(element);
   })(template.html);
-  return template;
-};
-module.exports['test'] = function (context, runtime) {
+  var firstChild = template.html.firstChild;
+  firstChild.update = template.update.bind(template);
+  return firstChild;
+}.bind(templates);
+templates['test'] = function (context, runtime) {
+  runtime = runtime || this._runtime;
   var template = new runtime.Template();
   (function (parent) {
-    var element = document.createElement('p');
-    (function (parent) {
-      var node = document.createTextNode('aString: ');
-      parent.appendChild(node);
-      var node = document.createTextNode('');
-      runtime.helpers.textBinding.call(template, node, context, 'aString');
-      parent.appendChild(node);
-    })(element);
+    var element = document.createElement('a');
+    runtime.helpers.combine.call(template, element, context, 'class', 'concat', [{"type":"Literal","value":"static "},{"type":"Expression","expression":"foo"},{"type":"Expression","expression":"bar"}]);
     parent.appendChild(element);
-    var element = document.createElement('p');
-    (function (parent) {
-      var node = document.createTextNode('aModel.foo: ');
-      parent.appendChild(node);
-      var node = document.createTextNode('');
-      runtime.helpers.textBinding.call(template, node, context, 'aModel.foo');
-      parent.appendChild(node);
-    })(element);
-    parent.appendChild(element);
-    runtime.helpers['if'].call(template,
-      parent,
-      context,
-      'foo',
-      function (parent) {
-        runtime.helpers['if'].call(template,
-          parent,
-          context,
-          'bar',
-          function (parent) {
-            var element = document.createElement('p');
-            (function (parent) {
-              var node = document.createTextNode('Hello!');
-              parent.appendChild(node);
-            })(element);
-            parent.appendChild(element);
-            var element = document.createElement('p');
-            (function (parent) {
-              var node = document.createTextNode('aString: ');
-              parent.appendChild(node);
-              var node = document.createTextNode('');
-              runtime.helpers.textBinding.call(template, node, context, 'aString');
-              parent.appendChild(node);
-            })(element);
-            parent.appendChild(element);
-          },
-          function (parent) {
-            var element = document.createElement('p');
-            (function (parent) {
-              var element = document.createElement('b');
-              (function (parent) {
-                var node = document.createTextNode('Other!');
-                parent.appendChild(node);
-              })(element);
-              parent.appendChild(element);
-            })(element);
-            parent.appendChild(element);
-            var element = document.createElement('p');
-            (function (parent) {
-              var node = document.createTextNode('aString: ');
-              parent.appendChild(node);
-              var node = document.createTextNode('');
-              runtime.helpers.textBinding.call(template, node, context, 'aString');
-              parent.appendChild(node);
-            })(element);
-            parent.appendChild(element);
-          }
-        )
-      },
-      function (parent) {
-        var element = document.createElement('p');
-        (function (parent) {
-          var element = document.createElement('b');
-          (function (parent) {
-            var node = document.createTextNode('There!');
-            parent.appendChild(node);
-          })(element);
-          parent.appendChild(element);
-          var node = document.createTextNode('aString: ');
-          parent.appendChild(node);
-          var node = document.createTextNode('');
-          runtime.helpers.textBinding.call(template, node, context, 'aString');
-          parent.appendChild(node);
-        })(element);
-        parent.appendChild(element);
-      }
-    )
   })(template.html);
-  return template;
-};
+  var firstChild = template.html.firstChild;
+  firstChild.update = template.update.bind(template);
+  return firstChild;
+}.bind(templates);
+module.exports = templates;

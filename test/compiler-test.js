@@ -17,9 +17,11 @@ var precompileAndAppend = function (ast, context, helpers, cb) {
     console.log(strFn);
 
     var inject = deval(function (strFn, context) {
+        window.requestAnimationFrame = function (cb) { cb(); };
         var tmpl = $strFn$;
         var fragment = tmpl($context$, window.RUNTIME);
         document.querySelector('#output').appendChild(fragment);
+        window.templateUnderTest = fragment;
     }, strFn, JSON.stringify(context));
 
     jsdom.env({
@@ -89,7 +91,7 @@ test('compiles expressions', function (t) {
 });
 
 test('compiles siblings', function (t) {
-    parser('<a id=one>foo</a><a id=two>bar</a>', function (err, ast) {
+    parser('<div><a id=one>foo</a><a id=two>bar</a></div>', function (err, ast) {
         precompileAndAppend(ast, function (err, window) {
             var el1 = window.document.querySelector('#one');
             t.equal(el1.innerHTML, 'foo');
@@ -131,4 +133,52 @@ test('compiles simple if statements', function (t) {
             t.ok(window.document.querySelector('b'));
         });
     });
+});
+
+test('updates basic bindings', function (t) {
+    parser(s(function () {/*
+        <a>{{ foo }}</a>
+    */}), function (err, ast) {
+        t.plan(2);
+
+        precompileAndAppend(ast, { foo: 'hello' }, builtinHelpers, function (err, window) {
+            var el = window.document.querySelector('a');
+            t.equal(el.innerHTML, 'hello');
+            window.templateUnderTest.update('foo', 'goodbye');
+            t.equal(el.innerHTML, 'goodbye');
+        });
+    });
+});
+
+
+
+test('updates basic bindings', function (t) {
+    parser(s(function () {/*
+        <a class="{{ foo }}"></a>
+    */}), function (err, ast) {
+        t.plan(2);
+
+        precompileAndAppend(ast, { foo: 'hello' }, builtinHelpers, function (err, window) {
+            var el = window.document.querySelector('a');
+            t.equal(el.getAttribute('class'), 'hello');
+            window.templateUnderTest.update('foo', 'goodbye');
+            t.equal(el.getAttribute('class'), 'goodbye');
+        });
+    });
+});
+
+test.only('updates magical class bindings', function (t) {
+    parser(s(function () {/*
+        <a class="static {{ foo }} {{ bar }}"></a>
+    */}), function (err, ast) {
+        t.plan(2);
+
+        precompileAndAppend(ast, { foo: 'hello', bar: 'there' }, builtinHelpers, function (err, window) {
+            var el = window.document.querySelector('a');
+            t.equal(el.getAttribute('class'), 'static hello there');
+            window.templateUnderTest.update('foo', 'goodbye');
+            t.equal(el.getAttribute('class'), 'goodbye');
+        });
+    });
+
 });

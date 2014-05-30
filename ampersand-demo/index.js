@@ -68,7 +68,7 @@ function addPerson () {
         me: me
     }, window.runtime);
 
-    document.body.appendChild(t.html);
+    document.body.appendChild(t);
 
     me.on('all', function (name, model, value) {
         t.update('me.' + name.split(':')[1], value);
