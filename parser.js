@@ -1,3 +1,4 @@
+var AST = require('./AST');
 var DomHandler = require('domhandler');
 var htmlparser = require('htmlparser2');
 var splitter = require('./split-and-keep-splitter');
@@ -7,12 +8,6 @@ var REGEXES = {
     splitter: /{{*([^}]*)}}/g,
     simpleExpression: /{{\s*([^}]*)\s*}}/,
 };
-
-/*
- * class="foo {{bar}} baz" 
- *
- *
- */
 
 function parseSimpleExpression(string) {
     string = string.trim();
@@ -28,7 +23,7 @@ function parseSimpleExpression(string) {
             expression: match[1].trim()
         };
     }
-    
+
     var args = splitter(
         string,
         REGEXES.splitter,
@@ -36,10 +31,7 @@ function parseSimpleExpression(string) {
             return parseSimpleExpression(str);
         },
         function (str) {
-            return {
-                type: 'Literal',
-                value: str
-            };
+            return AST.Literal(str);
         }
     );
 
@@ -119,12 +111,7 @@ function parseElement(el) {
         attributes[attrName] = parseSimpleExpression(el.attribs[attrName]);
     });
 
-    return {
-        type: 'Element',
-        tagName: el.name,
-        attributes: attributes,
-        children: children
-    };
+    return AST.Element(el.name, attributes, children);
 }
 
 function parseNode(node) {
@@ -199,7 +186,7 @@ function collectBlocks(node) {
 
 
 function parse(tmpl, cb) {
-    var ast = { type: 'Template', children: [] };
+    var ast = AST.Template();
 
     var handler = new DomHandler(function (err, dom) {
         dom.forEach(function (node) {
