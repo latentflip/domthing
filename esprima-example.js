@@ -1,8 +1,19 @@
 var s = require('./s');
 var esprima = require('esprima');
+var x = 4
 
 var ast = esprima.parse(s(function () {/*
-    console.log(42, 43, 44, 45*46);
+    if (x===4) {
+
+    } else {
+
+    }
+    while(x==4) {
+
+    }
+    for(;;) {
+
+    }
 */}));
 
 console.log(JSON.stringify(ast, null, 2));

@@ -1,1 +1,7 @@
-<a class="static {{ foo }} {{ bar }}"></a>
+<div>
+    {{#if foo}}
+        <a>hi</a>
+    {{#else}}
+        <b>there</b>
+    {{/if}}
+</div>

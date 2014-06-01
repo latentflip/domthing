@@ -14,16 +14,12 @@ function parseSimpleExpression(string) {
     var match = string.match(REGEXES.simpleExpression);
 
     //class="foo"
-    if (!match) return string;
+    if (!match) return AST.Literal(string);
 
     //class="{{foo}}"
-    if (match[0] === string) {
-        return {
-            type: 'Expression',
-            expression: match[1].trim()
-        };
-    }
+    if (match[0] === string) return AST.Binding(match[1].trim());
 
+    //class="baz {{foo}} bar"
     var args = splitter(
         string,
         REGEXES.splitter,
@@ -31,70 +27,51 @@ function parseSimpleExpression(string) {
             return parseSimpleExpression(str);
         },
         function (str) {
-            return AST.Literal(str);
+            return AST.Literal(str.trim());
         }
     );
 
-    return {
-        type: 'CombineExpression',
-        name: 'concat',
-        arguments: args
-    };
+    return AST.Expression('concat', args);
 }
 
-function parseHelper(node) {
-    var match = node.data.match(REGEXES.block);
-    var start = match[1] === '#';
-    var innerMatch = match[2].trim();
-    var blockType, expression;
-    switch(match[1]) {
+function parseBlockExpression(string) {
+    return AST.Binding(string);
+}
+
+function parseMustaches(string) {
+    var match = string.match(REGEXES.block);
+    var tagType = match[1];
+    var blockType;
+    var blockExpression = match[2].trim();
+
+    switch(tagType) {
     case undefined:
-        return {
-            type: 'TextNode',
-            content: {
-                type: 'Expression',
-                expression: innerMatch
-            }
-        };
+        return AST.TextNode( AST.Binding(blockExpression) );
     case "#":
-        var parts = innerMatch.split(' ');
+        var parts = blockExpression.split(' ');
         blockType = parts.shift();
-        expression = parts.join(' ');
+        blockExpression = parseBlockExpression(parts.join(' '));
         if (blockType === 'else') {
-            return {
-                type: 'BlockElse'
-            };
+            return AST.BlockElse();
         } else {
-            return {
-                type: 'BlockStart',
-                blockType: blockType,
-                expression: expression
-            };
+            return AST.BlockStart(blockType, blockExpression);
         }
         break;
-    case '/':
-        blockType = innerMatch;
-        return {
-            type: 'BlockEnd',
-            blockType: blockType
-        };
+    case "/":
+        blockType = blockExpression.split(' ')[0].trim();
+        return AST.BlockEnd(blockType);
     }
 }
 
-
-//FIXME: probably won't handle whitespace in {{foo}} {{bar}}
 function parseTextNode(node) {
     return splitter(
         node.data.trim(),
         REGEXES.splitter,
         function (str) {
-            return parseHelper({ data: str.trim() });
+            return parseMustaches(str);
         },
         function (str) {
-            return {
-                type: 'TextNode',
-                content: str
-            };
+            return AST.TextNode( AST.Literal(str) );
         }
     );
 }
@@ -138,19 +115,10 @@ function collectBlocks(node) {
         var block;
 
         if (child.type === 'BlockStart') {
-            block = {
-                type: 'BlockStatement',
-                body: [],
-                alternate: [],
-                state: 'body'
-            };
-
-            Object.keys(child).forEach(function (key) {
-                block[key] = block[key] || child[key];
-            });
+            block = AST.BlockStatement(child.blockType, child.blockExpression);
+            block.state = 'body';
 
             blocks.push(block);
-
             return;
         }
 

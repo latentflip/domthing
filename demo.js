@@ -12,7 +12,7 @@ var data = {
 
 document.addEventListener('DOMContentLoaded', function () {
     var template = templates.test(data, runtime);
-    document.body.appendChild(template.html);
+    document.body.appendChild(template);
     setInterval(function () {
         template.update('aString', "hello" + Date.now());
     }, 500);

@@ -3,21 +3,53 @@ function indent(d, s) {
     return Array(d).join('  ') + s;
 }
 
+function precompileExpression(ast, o) {
+    o = o || {};
+    if (ast.type === 'Literal') {
+        return [
+            indent(o.depth, "runtime.helpers.STREAMIFY_LITERAL.call(template, '" + ast.value + "')")
+        ];
+    }
+
+    if (ast.type === 'Binding') {
+        return [
+            indent(o.depth, "runtime.helpers.STREAMIFY_BINDING.call(template, context, '" + ast.keypath + "')")
+        ];
+    }
+
+    if (ast.type === 'Expression') {
+        var name = ast.name;
+        var args = ast.arguments.map(function (expr) {
+            return precompileExpression(expr, { depth: o.depth + 1 }) + ','
+        });
+
+        return [
+            indent(o.depth, "runtime.helpers.EXPRESSION('" + name + "', ["),
+        ].concat(args).concat([
+            indent(o.depth, "])")
+        ]);
+    }
+    //return [
+    //
+    //];
+}
 
 function precompileTextNode(element, o) {
     o = o || {};
-    if (typeof element.content === 'string') {
-        return [
-            indent(o.depth, "var node = document.createTextNode('" + element.content + "');"),
-            indent(o.depth, "parent.appendChild(node);")
-        ];
-    } else {
-        return[
-            indent(o.depth, "var node = document.createTextNode('');"),
-            indent(o.depth, "runtime.helpers.textBinding.call(template, node, context, '" + element.content.expression + "');"),
-            indent(o.depth, "parent.appendChild(node);")
-        ];
-    }
+
+    var expression = precompileExpression(element.content, { depth: o.depth + 2 });
+
+    return [
+        indent(o.depth, "(function (parent) {"),
+        indent(o.depth + 1, "var node = document.createTextNode('');"),
+        indent(o.depth + 1, "var expr = ("),
+    ].concat(expression).concat([
+        indent(o.depth + 1, ");"),
+        indent(o.depth + 1, "node.data = expr.value;"),
+        indent(o.depth + 1, "expr.on('change', function (text) { node.data = text; });"),
+        indent(o.depth + 1, "parent.appendChild(node);"),
+        indent(o.depth, "})(parent);")
+    ]);
 }
 
 function precompileElement(element, o) {
@@ -33,24 +65,21 @@ function precompileElement(element, o) {
 
     var body = [];
 
-    Object.keys(element.attributes).forEach(function (attrName) {
-        if (element.attributes[attrName].type === 'CombineExpression') {
-            var name = element.attributes[attrName].name;
-            var args = element.attributes[attrName].arguments;
+    body.push(indent(o.depth, 'var expr;'));
 
-            body.push(
-                indent(o.depth, "runtime.helpers.combine.call(template, element, context, '" + attrName + "', '" + name + "', " + JSON.stringify(args) + ');')
-            );
-        } else if (element.attributes[attrName].type === 'Expression') {
-            var expression = element.attributes[attrName].expression;
-            body.push(
-                indent(o.depth, "runtime.helpers.attribute.call(template, element, context, '" + attrName + "', '" + expression + "');")
-            );
-        } else {
-            body.push(
-                indent(o.depth, "element.setAttribute('" + attrName + "', '" + element.attributes[attrName] + "');")
-            );
-        }
+    Object.keys(element.attributes).forEach(function (attrName) {
+        var attr = element.attributes[attrName];
+        var expression = precompileExpression(attr, { depth: o.depth + 1 });
+
+        body = body.concat([
+            indent(o.depth, "expr = (")
+        ]).concat(expression).concat([
+            indent(o.depth, ");"),
+            indent(o.depth, "element.setAttribute('" + attrName + "', expr.value);"),
+            indent(o.depth, "expr.on('change', function (v) { element.setAttribute('" + attrName + "', v); });")
+        ]);
+        return;
+            
     });
 
     if (element.children.length) {
@@ -66,12 +95,17 @@ function precompileElement(element, o) {
 
 function precompileBlock(node, o) {
     o = o || {};
+
+    var expr = precompileExpression(node.blockExpression, { depth: o.depth + 2 });
+    
     var prelude = [
         indent(o.depth, "runtime.helpers['" + node.blockType + "'].call(template,"),
         indent(o.depth + 1, "parent,"),
         indent(o.depth + 1, "context,"),
-        indent(o.depth + 1, "'" + node.expression + "',")
-    ];
+        indent(o.depth + 1, "("),
+    ].concat(expr).concat([
+        indent(o.depth + 1, "),")
+    ]);
 
     var body = [];
     body.push(indent(o.depth + 1, "function (parent) {"));

@@ -1,5 +1,6 @@
 var parse = require('../parser');
 var test = require('tape');
+var AST = require('../AST');
 
 var s = require('../s');
 
@@ -13,213 +14,91 @@ test.Test.prototype.astEqual = function (tmpl, expected) {
 };
 
 test('parses a template', function (t) {
-    t.astEqual('', { type: 'Template', children: [] });
+    t.astEqual('', AST.Template());
 });
 
 
 test('parses simple tags', function (t) {
-    t.astEqual('<a></a>', {
-        type: 'Template',
-        children: [
-            {
-                type: 'Element',
-                tagName: 'a',
-                attributes: {},
-                children: []
-            }
-        ]
-    });
+    t.astEqual('<a></a>', AST.Template([
+        AST.Element('a')
+    ]));
 });
 
-test('parses simple expressions', function (t) {
-    t.astEqual('<a>foo {{bar}} baz</a>', {
-        type: 'Template',
-        children: [
-            {
-                type: 'Element',
-                tagName: 'a',
-                attributes: {},
-                children: [
-                    {
-                        type: 'TextNode',
-                        content: 'foo ',
-                    },
-                    {
-                        type: 'TextNode',
-                        content: {
-                            type: 'Expression',
-                            expression: 'bar'
-                        }
-                    },
-                    {
-                        type: 'TextNode',
-                        content: ' baz',
-                    }
-                ]
-            }
-        ]
-    });
-});
+
 
 test('parses attributes', function (t) {
-    t.astEqual("<a href='foo' class='bar' id='baz'></a>", {
-        type: 'Template',
-        children: [
-            {
-                type: 'Element',
-                tagName: 'a',
-                attributes: {
-                    href: 'foo',
-                    class: 'bar',
-                    id: 'baz'
-                },
-                children: []
-            }
-        ]
-    });
+    t.astEqual("<a href='foo' class='bar' id='baz'></a>", AST.Template([
+        AST.Element('a', {
+            href: AST.Literal('foo'),
+            class: AST.Literal('bar'),
+            id: AST.Literal('baz'),
+        })
+    ]));
 });
 
 test('parses expressions in attributes', function (t) {
-    t.astEqual("<a href='{{foo}}' class='bar'></a>", {
-        type: 'Template',
-        children: [
-            {
-                type: 'Element',
-                tagName: 'a',
-                attributes: {
-                    href: {
-                        type: 'Expression',
-                        expression: 'foo',
-                    },
-                    class: 'bar'
-                },
-                children: []
-            }
-        ]
-    });
+    t.astEqual("<a href='{{foo}}' id='{{ baz}}' class='bar'></a>", AST.Template([
+        AST.Element('a', {
+            href: AST.Binding('foo'),
+            id: AST.Binding('baz'),
+            class: AST.Literal('bar')
+        })
+    ]));
 });
 
 test('parses concat expressions in attributes', function (t) {
-    t.astEqual("<a class='foo {{foo}} bar {{bar}}'></a>", {
-        type: 'Template',
-        children: [
-            {
-                type: 'Element',
-                tagName: 'a',
-                attributes: {
-                    class: {
-                        type: 'CombineExpression',
-                        name: 'concat',
-                        arguments: [
-                            {
-                                type: 'Literal',
-                                value: 'foo '
-                            },
-                            {
-                                type: 'Expression',
-                                expression: 'foo'
-                            },
-                            {
-                                type: 'Literal',
-                                value: ' bar '
-                            },
-                            {
-                                type: 'Expression',
-                                expression: 'bar'
-                            }
-                        ]
-                    }
-                },
-                children: []
-            }
-        ]
-    });
+    t.astEqual("<a class='foo {{foo}} bar {{bar}}'></a>", AST.Template([
+        AST.Element('a', {
+            class: AST.Expression('concat', [
+                AST.Literal('foo'),
+                AST.Binding('foo'),
+                AST.Literal('bar'),
+                AST.Binding('bar'),
+            ])
+        })
+    ]));
 });
 
 test('parses text nodes', function (t) {
-    t.astEqual("<a>foo</a>", {
-        type: 'Template',
-        children: [
-            {
-                type: 'Element',
-                tagName: 'a',
-                attributes: {},
-                children: [
-                    {
-                        type: 'TextNode',
-                        content: 'foo'
-                    }
-                ]
-            }
-        ]
-    });
+    t.astEqual("<a>foo</a>", AST.Template([
+        AST.Element('a', [
+            AST.TextNode( AST.Literal('foo') )
+        ])
+    ]));
+});
+
+test('parses simple bindings in text nodes', function (t) {
+    t.astEqual('<a>foo {{bar}} baz</a>', AST.Template([
+        AST.Element('a', [
+            AST.TextNode( AST.Literal('foo ') ),
+            AST.TextNode( AST.Binding('bar') ),
+            AST.TextNode( AST.Literal(' baz') ),
+        ])
+    ]));
 });
 
 test('parses child nodes', function (t) {
-    t.astEqual('<a><em>foo</em></a>', {
-        type: 'Template',
-        children: [
-            {
-                type: 'Element',
-                tagName: 'a',
-                attributes: {},
-                children: [
-                    {
-                        type: 'Element',
-                        tagName: 'em',
-                        attributes: {},
-                        children: [
-                            {
-                                type: 'TextNode',
-                                content: 'foo'
-                            }
-                        ]
-                    }
-                ]
-            }
-        ]
-    });
+    t.astEqual('<a><em>foo</em></a>', AST.Template([
+        AST.Element('a', [
+            AST.Element('em', [
+                AST.TextNode( AST.Literal('foo') )
+            ])
+        ])
+    ]));
 });
 
 test('parses siblings', function (t) {
-    t.astEqual('<a><em>foo</em><strong>bar</strong>baz</a>', {
-        type: 'Template',
-        children: [
-            {
-                type: 'Element',
-                tagName: 'a',
-                attributes: {},
-                children: [
-                    {
-                        type: 'Element',
-                        tagName: 'em',
-                        attributes: {},
-                        children: [
-                            {
-                                type: 'TextNode',
-                                content: 'foo'
-                            }
-                        ]
-                    },
-                    {
-                        type: 'Element',
-                        tagName: 'strong',
-                        attributes: {},
-                        children: [
-                            {
-                                type: 'TextNode',
-                                content: 'bar'
-                            }
-                        ]
-                    },
-                    {
-                        type: 'TextNode',
-                        content: 'baz',
-                    },
-                ]
-            }
-        ]
-    });
+    t.astEqual('<a><em>foo</em><strong>bar</strong>baz</a>', AST.Template([
+        AST.Element('a', [
+            AST.Element('em', [
+                AST.TextNode( AST.Literal('foo') )
+            ]),
+            AST.Element('strong', [
+                AST.TextNode( AST.Literal('bar') )
+            ]),
+            AST.TextNode( AST.Literal('baz') )
+        ])
+    ]));
 });
 
 
@@ -228,31 +107,12 @@ test('parses if statements', function (t) {
         {{#if foo }}
             <a></a><b></b>
         {{/if}}
-    */}), {
-        type: 'Template',
-        children: [
-            {
-                type: 'BlockStatement',
-                blockType: 'if',
-                expression: 'foo',
-                body: [
-                    {
-                        type: 'Element',
-                        tagName: 'a',
-                        attributes: {},
-                        children: []
-                    },
-                    {
-                        type: 'Element',
-                        tagName: 'b',
-                        attributes: {},
-                        children: []
-                    }
-                ],
-                alternate: []
-            }
-        ]
-    });
+    */}), AST.Template([
+        AST.BlockStatement('if', AST.Binding('foo'), [
+            AST.Element('a'),
+            AST.Element('b'),
+        ])
+    ]));
 });
 
 test('parses if/else statements', function (t) {
@@ -262,63 +122,33 @@ test('parses if/else statements', function (t) {
         {{#else }}
             <b></b>
         {{/if}}
-    */}), {
-        type: 'Template',
-        children: [
-            {
-                type: 'BlockStatement',
-                blockType: 'if',
-                expression: 'foo',
-                body: [
-                    {
-                        type: 'Element',
-                        tagName: 'a',
-                        attributes: {},
-                        children: []
-                    }
-                ],
-                alternate: [
-                    {
-                        type: 'Element',
-                        tagName: 'b',
-                        attributes: {},
-                        children: []
-                    }
-                ]
-            }
-        ]
-    });
+    */}), AST.Template([
+        AST.BlockStatement('if', AST.Binding('foo'), [
+            AST.Element('a')
+        ], [
+            AST.Element('b')
+        ])
+    ]));
 });
 
 test('handles blocks in text', function (t) {
     t.astEqual(s(function () {/*
-        {{#if foo }}
-            hello
-        {{#else }}
-            goodbye
-        {{/if}}
-    */}), {
-        type: 'Template',
-        children: [
-            {
-                type: 'BlockStatement',
-                blockType: 'if',
-                expression: 'foo',
-                body: [
-                    {
-                        type: 'TextNode',
-                        content: ' hello '
-                    }
-                ],
-                alternate: [
-                    {
-                        type: 'TextNode',
-                        content: ' goodbye '
-                    }
-                ]
-            }
-        ]
-    });
+        <p>
+            {{#if foo }}
+                hello
+            {{#else }}
+                goodbye
+            {{/if}}
+        </p>
+    */}), AST.Template([
+        AST.Element('p', [
+            AST.BlockStatement('if', AST.Binding('foo'), [
+                AST.TextNode( AST.Literal(' hello ') )
+            ], [
+                AST.TextNode( AST.Literal(' goodbye ') )
+            ])
+        ])
+    ]));
 });
 
 test('parses nested if/else statements', function (t) {
@@ -332,47 +162,17 @@ test('parses nested if/else statements', function (t) {
         {{#else }}
             <b></b>
         {{/if}}
-    */}), {
-        type: 'Template',
-        children: [
-            {
-                type: 'BlockStatement',
-                blockType: 'if',
-                expression: 'foo',
-                body: [
-                    {
-                        type: 'BlockStatement',
-                        blockType: 'if',
-                        expression: 'bar',
-                        body: [
-                            {
-                                type: 'Element',
-                                tagName: 'a',
-                                attributes: {},
-                                children: []
-                            }
-                        ],
-                        alternate: [
-                            {
-                                type: 'Element',
-                                tagName: 'c',
-                                attributes: {},
-                                children: []
-                            }
-                        ]
-                    }
-                ],
-                alternate: [
-                    {
-                        type: 'Element',
-                        tagName: 'b',
-                        attributes: {},
-                        children: []
-                    }
-                ]
-            }
-        ]
-    });
+    */}), AST.Template([
+        AST.BlockStatement('if', AST.Binding('foo'), [
+            AST.BlockStatement('if', AST.Binding('bar'), [
+                AST.Element('a')
+            ], [
+                AST.Element('c')
+            ])
+        ], [
+            AST.Element('b')
+        ])
+    ]));
 });
 
 test('parses unless statements', function (t) {
@@ -382,32 +182,13 @@ test('parses unless statements', function (t) {
         {{#else }}
             <b></b>
         {{/if}}
-    */}), {
-        type: 'Template',
-        children: [
-            {
-                type: 'BlockStatement',
-                blockType: 'unless',
-                expression: 'foo',
-                body: [
-                    {
-                        type: 'Element',
-                        tagName: 'a',
-                        attributes: {},
-                        children: []
-                    }
-                ],
-                alternate: [
-                    {
-                        type: 'Element',
-                        tagName: 'b',
-                        attributes: {},
-                        children: []
-                    }
-                ]
-            }
-        ]
-    });
+    */}), AST.Template([
+        AST.BlockStatement('unless', AST.Binding('foo'), [
+            AST.Element('a')
+        ], [
+            AST.Element('b')
+        ])
+    ]));
 });
 
 

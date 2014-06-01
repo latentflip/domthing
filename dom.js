@@ -10,4 +10,3 @@ var parser = new Htmlparser.Parser(handler);
 
 parser.write('{{#if true }}<a>foo</a>{{/if }}');
 parser.done();
-

@@ -7,6 +7,11 @@ var deval = require('deval');
 var jsdom = require('jsdom');
 var builtinHelpers = require('../helpers');
 var fs = require('fs');
+var AST = require('../AST');
+
+var visible = function (el) {
+    return el;
+};
 
 var precompileAndAppend = function (ast, context, helpers, cb) {
     if (!cb && !helpers && typeof context === 'function') {
@@ -14,10 +19,19 @@ var precompileAndAppend = function (ast, context, helpers, cb) {
         context = {};
     }
     var strFn = precompileAST(ast);
-    console.log(strFn);
+    //console.log(strFn);
+
+    var window = deval(function () {
+        window._console = [];
+        window.console = {
+            log: function () {
+                window._console.push([].slice.call(arguments));
+            }
+        };
+        window.requestAnimationFrame = function (cb) { cb(); };
+    });
 
     var inject = deval(function (strFn, context) {
-        window.requestAnimationFrame = function (cb) { cb(); };
         var tmpl = $strFn$;
         var fragment = tmpl($context$, window.RUNTIME);
         document.querySelector('#output').appendChild(fragment);
@@ -27,7 +41,7 @@ var precompileAndAppend = function (ast, context, helpers, cb) {
     jsdom.env({
         html: '<div id=output></div>',
         src: [
-            fs.readFileSync(__dirname + '/../runtime.bundle.js').toString() + ';' +  inject
+            window + ';' + fs.readFileSync(__dirname + '/../runtime.bundle.js').toString() + ';' +  inject
         ],
         done: function (err, window) {
             if (err) {
@@ -39,54 +53,75 @@ var precompileAndAppend = function (ast, context, helpers, cb) {
     });
 };
 
-test('compiles simple ast', function (t) {
-    precompileAndAppend({
-        type: 'Template',
-        children: [
-            {
-                type: 'Element',
-                tagName: 'a',
-                attributes: {},
-                children: []
-            }
-        ]
-    }, function (err, window) {
+var parsePrecompileAndAppend = function (template, context, helpers, cb) {
+    parser(template, function (err, ast) {
+        precompileAndAppend(ast, context, helpers, cb);
+    });
+};
+
+test('compiles simple nodes', function (t) {
+    parsePrecompileAndAppend('<a></a>', function (err, window) {
         t.equal(window.document.querySelectorAll('a').length, 1);
         t.end();
     });
 });
 
 test('compiles attributes', function (t) {
-    parser('<a id="baz" class="bar" href="foo"></a>', function (err, ast) {
-        precompileAndAppend(ast, function (err, window) {
-            var el = window.document.querySelector('a');
-            t.equal(el.getAttribute('href'), 'foo');
-            t.equal(el.getAttribute('class'), 'bar');
-            t.equal(el.getAttribute('id'), 'baz');
-            t.end();
-        });
+    var template = '<a id="baz" class="bar" href="foo"></a>';
+    parsePrecompileAndAppend(template, function (err, window) {
+        var el = window.document.querySelector('a');
+        t.equal(el.getAttribute('href'), 'foo');
+        t.equal(el.getAttribute('class'), 'bar');
+        t.equal(el.getAttribute('id'), 'baz');
+        t.end();
     });
 });
 
 test('compiles textNodes', function (t) {
-    parser('<a>foo</a>', function (err, ast) {
+    parsePrecompileAndAppend('<a>foo</a>', function (err, window) {
+        var el = window.document.querySelector('a');
+        t.equal(el.innerHTML, 'foo');
+        t.end();
+    });
+});
 
-        precompileAndAppend(ast, function (err, window) {
-            var el = window.document.querySelector('a');
-            t.equal(el.innerHTML, 'foo');
-            t.end();
-        });
+test('compiles textNode with simple bindings', function (t) {
+    var template = '<a>{{foo}}</a>';
+    var context = { foo: 'hello' };
+
+    parsePrecompileAndAppend(template, context, builtinHelpers, function (err, window) {
+        var el = window.document.querySelector('a');
+        t.equal(el.innerHTML, 'hello');
+        window.templateUnderTest.update('foo', 'goodbye');
+        t.equal(el.innerHTML, 'goodbye');
+        console.log(window._console);
+        t.end();
+    });
+});
+
+test('compiles attributes with bindings', function (t) {
+    var template = '<a href="{{url}}">a link</a>';
+    var context = { url: 'google.com' };
+
+    parsePrecompileAndAppend(template, context, builtinHelpers, function (err, window) {
+        var el = window.document.querySelector('a');
+        t.equal(el.getAttribute('href'), 'google.com');
+        window.templateUnderTest.update('url', 'yahoo.com');
+        t.equal(el.getAttribute('href'), 'yahoo.com');
+        console.log(window._console);
+        t.end();
     });
 });
 
 
 test('compiles expressions', function (t) {
-    parser('<a>foo {{bar}} baz</a>', function (err, ast) {
-        precompileAndAppend(ast, {bar: 'Hello!'}, builtinHelpers, function (err, window) {
-            var el = window.document.querySelector('a');
-            t.equal(el.innerHTML, 'foo Hello! baz');
-            t.end();
-        });
+    var template = '<a>foo {{bar}} baz</a>';
+    parsePrecompileAndAppend(template, { bar: 'hello!' }, builtinHelpers, function (err, window) {
+        var el = window.document.querySelector('a');
+        t.equal(el.innerHTML, 'foo hello! baz');
+        window.templateUnderTest.update('bar', 'goodbye!');
+        t.equal(el.innerHTML, 'foo goodbye! baz');
+        t.end();
    });
 });
 
@@ -114,71 +149,117 @@ test('compiles nested', function (t) {
     });
 });
 
+
+test('updates magical class bindings', function (t) {
+    var tmpl = '<a class="static {{ foo }} {{ bar }}"></a>';
+    var context = { foo: 'hello', bar: 'there' };
+
+    parsePrecompileAndAppend(tmpl, context, builtinHelpers, function (err, window) {
+        var el = window.document.querySelector('a');
+        t.equal(el.getAttribute('class'), 'static hello there');
+        window.templateUnderTest.update('foo', 'goodbye');
+        t.equal(el.getAttribute('class'), 'static goodbye there');
+        t.end();
+    });
+});
+
 test('compiles simple if statements', function (t) {
-    parser(s(function () {/*
-        {{#if foo}}
-            <a></a>
-        {{#else}}
-            <b></b>
-        {{/if}}
-    */}), function (err, ast) {
-        t.plan(4);
-        precompileAndAppend(ast, { foo: true }, builtinHelpers, function (err, window) {
-            t.ok(window.document.querySelector('a'));
-            t.notOk(window.document.querySelector('b'));
-        });
+    var tmpl = s(function () {/*
+        <div>
+            {{#if foo}}
+                <a></a>
+            {{#else}}
+                <b></b>
+            {{/if}}
+        </div>
+    */});
+    var context = { foo: true };
 
-        precompileAndAppend(ast, { foo: false }, builtinHelpers, function (err, window) {
-            t.notOk(window.document.querySelector('a'));
-            t.ok(window.document.querySelector('b'));
-        });
+    parsePrecompileAndAppend(tmpl, context, builtinHelpers, function (err, window) {
+        t.ok(visible(window.document.querySelector('a')));
+        t.notOk(visible(window.document.querySelector('b')));
+
+        window.templateUnderTest.update('foo', false);
+
+        t.notOk(visible(window.document.querySelector('a')));
+        t.ok(visible(window.document.querySelector('b')));
+        t.end();
     });
 });
 
-test('updates basic bindings', function (t) {
-    parser(s(function () {/*
-        <a>{{ foo }}</a>
-    */}), function (err, ast) {
-        t.plan(2);
+test('compiles if statements without wrappers', function (t) {
+    var tmpl = s(function () {/*
+        <ul>
+            {{#if foo}}
+                <li class='yes'>Hi!</li>
+            {{#else}}
+                <li class='no'>Hi!</li>
+            {{/if}}
+        </ul>
+    */});
 
-        precompileAndAppend(ast, { foo: 'hello' }, builtinHelpers, function (err, window) {
-            var el = window.document.querySelector('a');
-            t.equal(el.innerHTML, 'hello');
-            window.templateUnderTest.update('foo', 'goodbye');
-            t.equal(el.innerHTML, 'goodbye');
-        });
+    var context = { foo: true };
+
+    parsePrecompileAndAppend(tmpl, context, builtinHelpers, function (err, window) {
+        t.ok(visible(window.document.querySelector('ul > li.yes')));
+        t.notOk(visible(window.document.querySelector('ul > li.no')));
+
+        window.templateUnderTest.update('foo', false);
+
+        t.notOk(visible(window.document.querySelector('ul > li.yes')));
+        t.ok(visible(window.document.querySelector('ul > li.no')));
+        t.end();
     });
 });
 
+test('compiles unless statements without wrappers', function (t) {
+    var tmpl = s(function () {/*
+        <ul>
+            {{#unless foo}}
+                <li class='yes'>Hi!</li>
+            {{#else}}
+                <li class='no'>Hi!</li>
+            {{/if}}
+        </ul>
+    */});
 
+    var context = { foo: true };
 
-test('updates basic bindings', function (t) {
-    parser(s(function () {/*
-        <a class="{{ foo }}"></a>
-    */}), function (err, ast) {
-        t.plan(2);
+    parsePrecompileAndAppend(tmpl, context, builtinHelpers, function (err, window) {
+        t.notOk(visible(window.document.querySelector('ul > li.yes')));
+        t.ok(visible(window.document.querySelector('ul > li.no')));
 
-        precompileAndAppend(ast, { foo: 'hello' }, builtinHelpers, function (err, window) {
-            var el = window.document.querySelector('a');
-            t.equal(el.getAttribute('class'), 'hello');
-            window.templateUnderTest.update('foo', 'goodbye');
-            t.equal(el.getAttribute('class'), 'goodbye');
-        });
+        window.templateUnderTest.update('foo', false);
+
+        t.ok(visible(window.document.querySelector('ul > li.yes')));
+        t.notOk(visible(window.document.querySelector('ul > li.no')));
+        t.end();
     });
 });
 
-test.only('updates magical class bindings', function (t) {
-    parser(s(function () {/*
-        <a class="static {{ foo }} {{ bar }}"></a>
-    */}), function (err, ast) {
-        t.plan(2);
+test('if statements dont die if only one sided', function (t) {
+    var tmpl = s(function () {/*
+        <ul>
+            <li class='yet'>Hi!</li>
+            {{#if foo}}
+            {{#else}}
+                <li class='no'>Hi!</li>
+            {{/if}}
+            <li class='yet'>There</li>
+        </ul>
+    */});
 
-        precompileAndAppend(ast, { foo: 'hello', bar: 'there' }, builtinHelpers, function (err, window) {
-            var el = window.document.querySelector('a');
-            t.equal(el.getAttribute('class'), 'static hello there');
-            window.templateUnderTest.update('foo', 'goodbye');
-            t.equal(el.getAttribute('class'), 'goodbye');
-        });
+    var context = { foo: true };
+
+    parsePrecompileAndAppend(tmpl, context, builtinHelpers, function (err, window) {
+        console.log(window._console);
+        //console.log(window.document.querySelector('ul > li.no').style.display);
+        t.notOk(visible(window.document.querySelector('ul > li.no')));
+
+        window.templateUnderTest.update('foo', false);
+
+        t.notOk(visible(window.document.querySelector('ul > li.yes')));
+        t.ok(visible(window.document.querySelector('ul > li.no')));
+        t.end();
     });
-
 });

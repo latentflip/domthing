@@ -1,83 +1,86 @@
 var reduceKeypath = require('./lib/reduce-keypath');
 var streamCombiner = require('./lib/tiny-stream-combiner');
+var stream = require('./lib/tiny-stream');
 
-var combinators = module.exports.combinators = {
-    concat: function (/*args...*/) {
-        return [].join.apply(arguments, ' ');
-    }
+var HELPERS = module.exports;
+
+module.exports.STREAMIFY_LITERAL = function (value) {
+    return stream(value);
 };
 
-module.exports.combine = function (node, context, attributeName, method, args) {
-    var expressions = [];
-    var keys = args;
-    var vals = args.map(function (v) {
-        if (v.type === 'Literal') return v.value;
-        if (v.type === 'Expression') {
-            expressions.push(v.expression);
-            return reduceKeypath(context, v.expression);
-        }
-    });
-    
-    if (!combinators[method]) throw new Error('Unknown combinator: "' + method + '"');
+module.exports.STREAMIFY_BINDING = function (context, keypath) {
+    var value = reduceKeypath(context, keypath);
+    var s = stream(value);
 
-    var combiner = streamCombiner(keys, vals, combinators[method]);
-    combiner.on('change', function (newValue) {
-        node.setAttribute(attributeName, newValue);
-    });
-    node.setAttribute(attributeName, combiner.value);
-
-    expressions.forEach(function () {
-        this.addCallback(expression, function (value) {
-            combiner[expression] = value;
-        });
-    }.bind(this));
-};
-
-module.exports.textBinding = function (node, context, keypath) {
     this.addCallback(keypath, function (value) {
-        node.data = value;
+        s.value = value;
     });
-    node.data = reduceKeypath(context, keypath);
+
+    return s;
 };
 
-module.exports.attribute = function (node, context, attributeName, expression) {
-    this.addCallback(expression, function (value) {
-        node.setAttribute(attributeName, value);
+var streamifyFn = require('./lib/streamify-fn');
+
+module.exports.concat = function (/*args...*/) {
+    var fn = streamifyFn(function (/*args...*/) {
+        console.log([].slice.call(arguments));
+        return [].slice.call(arguments).join(' ');
     });
-    node.setAttribute(attributeName, reduceKeypath(context, expression));
+
+    return fn.apply(fn, arguments);
+};
+
+module.exports.EXPRESSION = function (name, args) {
+    if (!HELPERS[name]) throw new Error('Cannot find filter ' + name);
+    return HELPERS[name].apply(HELPERS[name], args);
+};
+
+
+module.exports.unless = function (parent, context, expression, body, alternate) {
+    HELPERS.if(parent, context, expression, alternate, body);
 };
 
 module.exports.if = function (parent, context, expression, body, alternate) {
+    var anchor = document.createComment('if placeholder');
     var elements, newElements;
     //FIXME: need to wrap in a div, ugh
 
     var trueDiv = document.createElement('div');
     var falseDiv = document.createElement('div');
 
+    parent.appendChild(anchor);
+
     body(trueDiv);
     alternate(falseDiv);
 
-    var previousValue;
-    var currentElement;
+    var trueEls = [].slice.call(trueDiv.childNodes);
+    var falseEls = [].slice.call(falseDiv.childNodes);
 
     var render = function (value, force) {
-        var newElement;
-        value = !!value;
-
-        if (previousValue !== value || force) {
-            newElement = value ? trueDiv : falseDiv;
-
-            if (!currentElement) {
-                parent.appendChild(newElement);
-            } else {
-                currentElement.parentNode.replaceChild(newElement, currentElement);
+        first = false;
+        if (value) {
+            if (!first) {
+                falseEls.forEach(function (el) {
+                    el.parentNode.removeChild(el);
+                });
             }
 
-            currentElement = newElement;
-            previousValue = value;
+            trueEls.forEach(function (el) {
+                anchor.parentNode.insertBefore(el, parent.nextSibling);
+            });
+        } else {
+            if (!first) {
+                trueEls.forEach(function (el) {
+                    el.parentNode.removeChild(el);
+                });
+            }
+            falseEls.forEach(function (el) {
+                anchor.parentNode.insertBefore(el, parent.nextSibling);
+            });
+
         }
     };
 
-    render(reduceKeypath(context, expression), true);
-    this.addCallback(expression, render);
+    render(expression.value, true);
+    expression.on('change', render);
 };

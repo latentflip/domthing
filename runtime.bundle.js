@@ -1,89 +1,97 @@
 !function(e){if("object"==typeof exports&&"undefined"!=typeof module)module.exports=e();else if("function"==typeof define&&define.amd)define([],e);else{var f;"undefined"!=typeof window?f=window:"undefined"!=typeof global?f=global:"undefined"!=typeof self&&(f=self),f.RUNTIME=e()}}(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
 var reduceKeypath = _dereq_('./lib/reduce-keypath');
 var streamCombiner = _dereq_('./lib/tiny-stream-combiner');
+var stream = _dereq_('./lib/tiny-stream');
 
-var combinators = module.exports.combinators = {
-    concat: function (/*args...*/) {
-        return [].join.apply(arguments, ' ');
-    }
+var HELPERS = module.exports;
+
+module.exports.STREAMIFY_LITERAL = function (value) {
+    return stream(value);
 };
 
-module.exports.combine = function (node, context, attributeName, method, args) {
-    var expressions = [];
-    var keys = args;
-    var vals = args.map(function (v) {
-        if (v.type === 'Literal') return v.value;
-        if (v.type === 'Expression') {
-            expressions.push(v.expression);
-            return reduceKeypath(context, v.expression);
-        }
-    });
-    
-    if (!combinators[method]) throw new Error('Unknown combinator: "' + method + '"');
+module.exports.STREAMIFY_BINDING = function (context, keypath) {
+    var value = reduceKeypath(context, keypath);
+    var s = stream(value);
 
-    var combiner = streamCombiner(keys, vals, combinators[method]);
-    combiner.on('change', function (newValue) {
-        node.setAttribute(attributeName, newValue);
-    });
-    node.setAttribute(attributeName, combiner.value);
-
-    expressions.forEach(function () {
-        this.addCallback(expression, function (value) {
-            combiner[expression] = value;
-        });
-    }.bind(this));
-};
-
-module.exports.textBinding = function (node, context, keypath) {
     this.addCallback(keypath, function (value) {
-        node.data = value;
+        s.value = value;
     });
-    node.data = reduceKeypath(context, keypath);
+
+    return s;
 };
 
-module.exports.attribute = function (node, context, attributeName, expression) {
-    this.addCallback(expression, function (value) {
-        node.setAttribute(attributeName, value);
+var streamifyFn = _dereq_('./lib/streamify-fn');
+
+module.exports.concat = function (/*args...*/) {
+    var fn = streamifyFn(function (/*args...*/) {
+        console.log([].slice.call(arguments));
+        return [].slice.call(arguments).join(' ');
     });
-    node.setAttribute(attributeName, reduceKeypath(context, expression));
+
+    return fn.apply(fn, arguments);
+};
+
+module.exports.EXPRESSION = function (name, args) {
+    if (!HELPERS[name]) throw new Error('Cannot find filter ' + name);
+    return HELPERS[name].apply(HELPERS[name], args);
+};
+
+
+module.exports.Literal__ = function (value) {
+    return stream(value);
+};
+
+
+module.exports.unless = function (parent, context, expression, body, alternate) {
+    HELPERS.if(parent, context, expression, alternate, body);
 };
 
 module.exports.if = function (parent, context, expression, body, alternate) {
+    var anchor = document.createComment('if placeholder');
     var elements, newElements;
     //FIXME: need to wrap in a div, ugh
 
     var trueDiv = document.createElement('div');
     var falseDiv = document.createElement('div');
 
+    parent.appendChild(anchor);
+
     body(trueDiv);
     alternate(falseDiv);
 
-    var previousValue;
-    var currentElement;
+    var trueEls = [].slice.call(trueDiv.childNodes);
+    var falseEls = [].slice.call(falseDiv.childNodes);
 
     var render = function (value, force) {
-        var newElement;
-        value = !!value;
-
-        if (previousValue !== value || force) {
-            newElement = value ? trueDiv : falseDiv;
-
-            if (!currentElement) {
-                parent.appendChild(newElement);
-            } else {
-                currentElement.parentNode.replaceChild(newElement, currentElement);
+        first = false;
+        if (value) {
+            if (!first) {
+                falseEls.forEach(function (el) {
+                    el.parentNode.removeChild(el);
+                });
             }
 
-            currentElement = newElement;
-            previousValue = value;
+            trueEls.forEach(function (el) {
+                anchor.parentNode.insertBefore(el, parent.nextSibling);
+            });
+        } else {
+            if (!first) {
+                trueEls.forEach(function (el) {
+                    el.parentNode.removeChild(el);
+                });
+            }
+            falseEls.forEach(function (el) {
+                anchor.parentNode.insertBefore(el, parent.nextSibling);
+            });
+
         }
     };
 
-    render(reduceKeypath(context, expression), true);
-    this.addCallback(expression, render);
+    render(expression.value, true);
+    expression.on('change', render);
 };
 
-},{"./lib/reduce-keypath":2,"./lib/tiny-stream-combiner":3}],2:[function(_dereq_,module,exports){
+},{"./lib/reduce-keypath":2,"./lib/streamify-fn":3,"./lib/tiny-stream":5,"./lib/tiny-stream-combiner":4}],2:[function(_dereq_,module,exports){
 module.exports = function reduceKeypath(context, keypath) {
     var path = keypath.trim().split('.');
     return path.reduce(function (obj, path) {
@@ -92,6 +100,30 @@ module.exports = function reduceKeypath(context, keypath) {
 }
 
 },{}],3:[function(_dereq_,module,exports){
+var stream = _dereq_('./tiny-stream');
+
+module.exports = function (fn) {
+    return function (/*args...*/) {
+        var args = [].slice.call(arguments);
+        
+        var runFn = function () {
+            return fn.apply(fn, args.map(function (a) { return a.value; }));
+        };
+
+        var s = stream(runFn());
+
+        args.forEach(function (a) {
+            a.on('change', function () {
+                s.value = runFn();
+            });
+        });
+
+        console.log(fn.toString());
+        return s;
+    };
+};
+
+},{"./tiny-stream":5}],4:[function(_dereq_,module,exports){
 var Events = _dereq_('backbone-events-standalone');
 
 module.exports = function (keys, initialValues, combine) {
@@ -129,7 +161,32 @@ module.exports = function (keys, initialValues, combine) {
     return emitter;
 };
 
-},{"backbone-events-standalone":5}],4:[function(_dereq_,module,exports){
+},{"backbone-events-standalone":7}],5:[function(_dereq_,module,exports){
+var Events = _dereq_('backbone-events-standalone');
+
+function property(value) {
+    var prop = Events.mixin({});
+    var _value = value;
+
+    Object.defineProperty(prop, 'value', {
+        get: function () {
+            return _value;
+        },
+        set: function (newValue) {
+            var oldValue = _value;
+            _value = newValue;
+            if (_value !== oldValue) {
+                prop.trigger('change', _value, { previous: oldValue });
+            }
+        }
+    });
+
+    return prop;
+}
+
+module.exports = property;
+
+},{"backbone-events-standalone":7}],6:[function(_dereq_,module,exports){
 /**
  * Standalone extraction of Backbone.Events, no external dependency required.
  * Degrades nicely when Backone/underscore are already available in the current
@@ -397,10 +454,10 @@ module.exports = function (keys, initialValues, combine) {
   }
 })(this);
 
-},{}],5:[function(_dereq_,module,exports){
+},{}],7:[function(_dereq_,module,exports){
 module.exports = _dereq_('./backbone-events-standalone');
 
-},{"./backbone-events-standalone":4}],6:[function(_dereq_,module,exports){
+},{"./backbone-events-standalone":6}],8:[function(_dereq_,module,exports){
 function KeyTreeStore() {
     this.storage = {};
 }
@@ -441,7 +498,7 @@ KeyTreeStore.prototype.get = function (keypath) {
 
 module.exports = KeyTreeStore;
 
-},{}],7:[function(_dereq_,module,exports){
+},{}],9:[function(_dereq_,module,exports){
 var KeyTreeStore = _dereq_('key-tree-store');
 KeyTreeStore.prototype.keys = function (keypath) {
     var keys = Object.keys(this.storage);
@@ -517,6 +574,6 @@ module.exports = {
     Template: Template
 };
 
-},{"./helpers":1,"./lib/reduce-keypath":2,"key-tree-store":6}]},{},[7])
-(7)
+},{"./helpers":1,"./lib/reduce-keypath":2,"key-tree-store":8}]},{},[9])
+(9)
 });
