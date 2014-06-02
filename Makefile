@@ -1,6 +1,5 @@
 PATH := node_modules/.bin:$(PATH)
 
-
 .PHONY: test
 .PHONY: force
 
