@@ -4,6 +4,8 @@ A DOM-aware, mustache/handlebars-like, templating engine. Heavily inspired by HT
 
 # How do i I use it?
 
+Check out the demo repo at http://github.com/latentflip/domthing-demo
+
 ```bash
 npm install -g domthing
 ```
