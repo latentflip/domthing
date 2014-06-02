@@ -1,6 +1,6 @@
 # What is this?
 
-A DOM-aware, mustache/handlebars-like, templating engine.
+A DOM-aware, mustache/handlebars-like, templating engine. Heavily inspired by HTMLBars.
 
 # How do i I use it?
 
