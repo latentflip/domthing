@@ -1,4 +1,4 @@
-var runtime = require('./runtime');
+var runtime = require('../runtime');
 var templates = require('./templates');
 
 var data = {

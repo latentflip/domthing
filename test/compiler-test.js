@@ -1,13 +1,13 @@
-var compiler = require('../compiler');
-var parser = require('../parser');
+var compiler = require('../lib/compiler');
+var parser = require('../lib/parser');
 var test = require('tape');
-var s = require('../s');
-var precompileAST = compiler.precompileAST;
+var s = require('multiline');
+var compile = compiler.precompileAST;
 var deval = require('deval');
 var jsdom = require('jsdom');
-var builtinHelpers = require('../helpers');
+var builtinHelpers = require('../lib/runtime/helpers');
 var fs = require('fs');
-var AST = require('../AST');
+var AST = require('../lib/AST');
 
 var visible = function (el) {
     return el;
@@ -18,7 +18,7 @@ var precompileAndAppend = function (ast, context, helpers, cb) {
         cb = context;
         context = {};
     }
-    var strFn = precompileAST(ast);
+    var strFn = compile(ast);
     //console.log(strFn);
 
     var window = deval(function () {

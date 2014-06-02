@@ -5,8 +5,7 @@ var path = require('path');
 var glob = require('glob');
 var async = require('async');
 
-var parser = require('../parser');
-var compiler = require('../compiler');
+var domthing = require('../domthing');
 
 var root = path.join(process.cwd(), process.argv[2]);
 var match = path.join(root, '**', '*.dom');
@@ -17,9 +16,9 @@ glob(match, function (err, paths) {
         paths,
         function (p, next) {
             var tmpl = fs.readFileSync(p);
-            parser(tmpl, function (err, ast) {
+            domthing.parser(tmpl, function (err, ast) {
                 if (err) return next(err);
-                var compiled = compiler.precompileAST(ast);
+                var compiled = domthing.compiler.compile(ast);
 
                 var parts = path.relative(root, p).split(path.sep);
                 var name = parts[parts.length - 1].split('.')[0];
@@ -35,15 +34,7 @@ glob(match, function (err, paths) {
                 "module.exports = templates;"
             ]);
 
-            fs.writeFileSync(path.join(process.cwd(), 'templates.js'), file.join('\n'));
+            process.stdout.write(file.join('\n'));
         }
     );
 });
-
-
-//var tmpl = fs.readFileSync(path.join(process.cwd(), process.argv[2]);
-//var ast = parser(tmpl);
-//var compiled = compiler.precompileAST(ast);
-//
-//
-//module.exports = 

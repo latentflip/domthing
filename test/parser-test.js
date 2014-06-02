@@ -1,8 +1,8 @@
-var parse = require('../parser');
+var parse = require('../lib/parser');
 var test = require('tape');
-var AST = require('../AST');
+var AST = require('../lib/AST');
 
-var s = require('../s');
+var s = require('multiline');
 
 test.Test.prototype.astEqual = function (tmpl, expected) {
     var t = this;

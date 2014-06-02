@@ -1,21 +1,19 @@
+PATH := node_modules/.bin:$(PATH)
+
+
 .PHONY: test
 .PHONY: force
 
-all: runtime.bundle.js templates.js serve-demo
-
-ampersand: runtime.bundle.js templates.js serve-ampersand-demo
+all: runtime.bundle.js demo/templates.js serve-demo
 
 runtime.bundle.js: force
-	./node_modules/.bin/browserify runtime.js -s RUNTIME > runtime.bundle.js
+	browserify runtime.js -s RUNTIME > runtime.bundle.js
 
-templates.js: force
-	./bin/domthing templates
+demo/templates.js: force
+	./bin/domthing demo/templates > demo/templates.js
 
 serve-demo: force
-	beefy demo.js --open
-
-serve-ampersand-demo: force
-	beefy index.js --cwd ./ampersand-demo --open
+	beefy demo/demo.js --open
 
 test: runtime.bundle.js
 	faucet

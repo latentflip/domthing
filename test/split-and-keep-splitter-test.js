@@ -1,6 +1,5 @@
-var splitter = require('../split-and-keep-splitter');
+var splitter = require('../lib/split-and-keep-splitter');
 var test = require('tape');
-var s = require('../s');
 
 var regex = /{[^}]*}/g;
 

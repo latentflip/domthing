@@ -8,6 +8,7 @@
   },
   "dependencies": {
     "async": "^0.9.0",
+    "backbone-events-standalone": "^0.2.1",
     "domhandler": "^2.2.0",
     "glob": "^4.0.2",
     "htmlparser2": "^3.7.2",
@@ -16,7 +17,9 @@
   "devDependencies": {
     "browserify": "^4.1.7",
     "deval": "^0.1.1",
+    "faucet": "0.0.1",
     "jsdom": "^0.10.6",
+    "multiline": "^0.3.4",
     "tape": "^2.13.1"
   },
   "scripts": {
