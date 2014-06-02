@@ -30,6 +30,7 @@ glob(match, function (err, paths) {
 
             var file = [
                 "var templates = {};",
+                "templates._runtime = require('domthing/runtime');"
             ].concat(outputs).concat([
                 "module.exports = templates;"
             ]);
