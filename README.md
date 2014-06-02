@@ -6,8 +6,37 @@ A DOM-aware, mustache/handlebars-like, templating engine.
 
 ```bash
 npm install -g domthing
-domthing path/to/templates/directory > templates.js
-# Now go ask Phil because it's still kinda awkward
+```
+
+Now create a directory of templates, ending in `.dom`, like 'foo.dom':
+
+```html
+<!-- foo.dom -->
+<h1>{{ greeting }}</h1>
+```
+
+```javascript
+domthing path/to/templates > path/to/templates.js
+```
+
+now in your app you can do:
+```javascript
+var templates = require('./path/to/templates.js');
+
+document.addEventListener('DOMContentLoaded', function () {
+
+    //render the template (returns a dom node);
+    var rendered = templates.foo({ greeting: 'Hello!' });
+
+    //append the node
+    document.body.appendChild(rendered);
+
+    //trigger updates to context options:
+    setInterval(function () {
+        //or whatever
+        rendered.update('greeting', 'Goodbye!');
+    }, 5000);
+});
 ```
 
 # Why?
