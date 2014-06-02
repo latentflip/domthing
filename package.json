@@ -8,18 +8,17 @@
   },
   "dependencies": {
     "async": "^0.9.0",
-    "browserify": "^4.1.5",
-    "deval": "^0.1.1",
     "domhandler": "^2.2.0",
-    "domify": "^1.2.2",
-    "esprima": "^1.2.2",
-    "glob": "^4.0.0",
+    "glob": "^4.0.2",
     "htmlparser2": "^3.7.2",
-    "jsdom": "^0.10.5",
-    "key-tree-store": "^0.1.0",
+    "key-tree-store": "^0.1.1"
+  },
+  "devDependencies": {
+    "browserify": "^4.1.7",
+    "deval": "^0.1.1",
+    "jsdom": "^0.10.6",
     "tape": "^2.13.1"
   },
-  "devDependencies": {},
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
