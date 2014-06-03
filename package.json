@@ -20,6 +20,7 @@
     "faucet": "0.0.1",
     "jsdom": "^0.10.6",
     "multiline": "^0.3.4",
+    "pegjs": "^0.8.0",
     "tape": "^2.13.1"
   },
   "scripts": {

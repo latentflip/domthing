@@ -2,7 +2,7 @@ var compiler = require('../lib/compiler');
 var parser = require('../lib/parser');
 var test = require('tape');
 var s = require('multiline');
-var compile = compiler.precompileAST;
+var compile = compiler.compile;
 var deval = require('deval');
 var jsdom = require('jsdom');
 var builtinHelpers = require('../lib/runtime/helpers');
@@ -252,8 +252,31 @@ test('if statements dont die if only one sided', function (t) {
     var context = { foo: true };
 
     parsePrecompileAndAppend(tmpl, context, builtinHelpers, function (err, window) {
-        console.log(window._console);
-        //console.log(window.document.querySelector('ul > li.no').style.display);
+        t.notOk(visible(window.document.querySelector('ul > li.no')));
+
+        window.templateUnderTest.update('foo', false);
+
+        t.notOk(visible(window.document.querySelector('ul > li.yes')));
+        t.ok(visible(window.document.querySelector('ul > li.no')));
+        t.end();
+    });
+});
+
+test('compiles sub-expressions', function (t) {
+    var tmpl = s(function () {/*
+        <ul>
+            <li class='yet'>Hi!</li>
+            {{#if (not (not foo ))}}
+            {{#else}}
+                <li class='no'>Hi!</li>
+            {{/if}}
+            <li class='yet'>There</li>
+        </ul>
+    */});
+
+    var context = { foo: true };
+
+    parsePrecompileAndAppend(tmpl, context, builtinHelpers, function (err, window) {
         t.notOk(visible(window.document.querySelector('ul > li.no')));
 
         window.templateUnderTest.update('foo', false);

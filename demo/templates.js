@@ -1,4 +1,5 @@
 var templates = {};
+templates._runtime = require('../runtime');
 templates['person'] = function (context, runtime) {
   runtime = runtime || this._runtime;
   var template = new runtime.Template();
@@ -132,7 +133,11 @@ templates['test'] = function (context, runtime) {
         parent,
         context,
         (
-          runtime.helpers.STREAMIFY_BINDING.call(template, context, 'foo')
+          runtime.helpers.EXPRESSION('not', [
+            runtime.helpers.EXPRESSION('not', [
+              runtime.helpers.STREAMIFY_BINDING.call(template, context, 'foo')
+            ])
+          ])
         ),
         function (parent) {
           var element = document.createElement('a');

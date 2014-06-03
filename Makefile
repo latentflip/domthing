@@ -16,3 +16,6 @@ serve-demo: force
 
 test: runtime.bundle.js
 	faucet
+
+lib/sexp-parser.js: lib/sexp-parser.pegjs
+	./node_modules/.bin/pegjs lib/sexp-parser.pegjs

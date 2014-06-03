@@ -191,4 +191,18 @@ test('parses unless statements', function (t) {
     ]));
 });
 
-
+test('parses sub-expressions', function (t) {
+    t.astEqual(s(function () {/*
+        {{#if (not foo)}}
+            <a></a>
+        {{/if}}
+    */}), AST.Template([
+        AST.BlockStatement(
+            'if',
+            AST.Expression('not', [AST.Binding('foo')]),
+            [
+                AST.Element('a')
+            ]
+        )
+    ]));
+});
