@@ -19,6 +19,9 @@ var precompileAndAppend = function (ast, context, helpers, cb) {
         context = {};
     }
     var strFn = compile(ast);
+
+    //useful for debug
+    //console.log(JSON.stringify(ast, null, 2));
     //console.log(strFn);
 
     var window = deval(function () {
@@ -283,6 +286,26 @@ test('compiles sub-expressions', function (t) {
 
         t.notOk(visible(window.document.querySelector('ul > li.yes')));
         t.ok(visible(window.document.querySelector('ul > li.no')));
+        t.end();
+    });
+});
+
+test('compiles booleans', function (t) {
+    var tmpl = s(function () {/*
+        <div>
+            {{#if (not false)}}
+                <a></a>
+            {{#else}}
+                <b></b>
+            {{/if}}
+        </div>
+    */});
+
+    var context = {};
+
+    parsePrecompileAndAppend(tmpl, context, builtinHelpers, function (err, window) {
+        t.ok(visible(window.document.querySelector('a')));
+        t.notOk(visible(window.document.querySelector('b')));
         t.end();
     });
 });

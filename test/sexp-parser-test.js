@@ -12,6 +12,14 @@ test('simple functions', function (t) {
     );
 
     t.deepEqual(
+        parse('(not true false)'),
+        AST.Expression('not', [
+            AST.Literal(true),
+            AST.Literal(false)
+        ])
+    );
+
+    t.deepEqual(
         parse('(concat "foo" bar)'),
         AST.Expression('concat', [
             AST.Literal('foo'),
