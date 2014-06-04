@@ -47,13 +47,15 @@ test('parses expressions in attributes', function (t) {
 });
 
 test('parses concat expressions in attributes', function (t) {
-    t.astEqual("<a class='foo {{foo}} bar {{bar}}'></a>", AST.Template([
+    t.astEqual("<a class='foo {{foo}} bar {{bar}} {{baz}}'></a>", AST.Template([
         AST.Element('a', {
             class: AST.Expression('concat', [
-                AST.Literal('foo'),
+                AST.Literal('foo '),
                 AST.Binding('foo'),
-                AST.Literal('bar'),
+                AST.Literal(' bar '),
                 AST.Binding('bar'),
+                AST.Literal(' '),
+                AST.Binding('baz')
             ])
         })
     ]));
@@ -152,6 +154,7 @@ test('handles blocks in text', function (t) {
 });
 
 test('parses nested if/else statements', function (t) {
+
     t.astEqual(s(function () {/*
         {{#if foo }}
             {{#if bar }}

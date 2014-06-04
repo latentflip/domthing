@@ -12,6 +12,9 @@ var AST = require('../lib/AST');
 var visible = function (el) {
     return el;
 };
+var wait = function (fn) {
+    setTimeout(fn, 25);
+};
 
 var precompileAndAppend = function (ast, context, helpers, cb) {
     if (!cb && !helpers && typeof context === 'function') {
@@ -31,7 +34,7 @@ var precompileAndAppend = function (ast, context, helpers, cb) {
                 window._console.push([].slice.call(arguments));
             }
         };
-        window.requestAnimationFrame = function (cb) { cb(); };
+        window.requestAnimationFrame = function (cb) { setTimeout(cb, 0); };
     });
 
     var inject = deval(function (strFn, context) {
@@ -80,6 +83,23 @@ test('compiles attributes', function (t) {
     });
 });
 
+test('compiles multiline attributes', function (t) {
+    var template = s(function () {/*
+        <a id="baz" style="
+            color: red;
+            border: 1px red solid;
+        " href="foo"></a>
+    */});
+
+    parsePrecompileAndAppend(template, function (err, window) {
+        var el = window.document.querySelector('a');
+        t.equal(el.style.color, 'red');
+        t.equal(el.style.border, '1px red solid');
+        t.equal(el.getAttribute('href'), 'foo');
+        t.end();
+    });
+});
+
 test('compiles textNodes', function (t) {
     parsePrecompileAndAppend('<a>foo</a>', function (err, window) {
         var el = window.document.querySelector('a');
@@ -96,9 +116,10 @@ test('compiles textNode with simple bindings', function (t) {
         var el = window.document.querySelector('a');
         t.equal(el.innerHTML, 'hello');
         window.templateUnderTest.update('foo', 'goodbye');
-        t.equal(el.innerHTML, 'goodbye');
-        console.log(window._console);
-        t.end();
+        wait(function () {
+            t.equal(el.innerHTML, 'goodbye');
+            t.end();
+        });
     });
 });
 
@@ -110,9 +131,11 @@ test('compiles attributes with bindings', function (t) {
         var el = window.document.querySelector('a');
         t.equal(el.getAttribute('href'), 'google.com');
         window.templateUnderTest.update('url', 'yahoo.com');
-        t.equal(el.getAttribute('href'), 'yahoo.com');
-        console.log(window._console);
-        t.end();
+        wait(function () {
+            t.equal(el.getAttribute('href'), 'yahoo.com');
+            console.log(window._console);
+            t.end();
+        });
     });
 });
 
@@ -123,8 +146,10 @@ test('compiles expressions', function (t) {
         var el = window.document.querySelector('a');
         t.equal(el.innerHTML, 'foo hello! baz');
         window.templateUnderTest.update('bar', 'goodbye!');
-        t.equal(el.innerHTML, 'foo goodbye! baz');
-        t.end();
+        wait(function () {
+            t.equal(el.innerHTML, 'foo goodbye! baz');
+            t.end();
+        });
    });
 });
 
@@ -160,9 +185,12 @@ test('updates magical class bindings', function (t) {
     parsePrecompileAndAppend(tmpl, context, builtinHelpers, function (err, window) {
         var el = window.document.querySelector('a');
         t.equal(el.getAttribute('class'), 'static hello there');
+
         window.templateUnderTest.update('foo', 'goodbye');
-        t.equal(el.getAttribute('class'), 'static goodbye there');
-        t.end();
+        wait(function () {
+            t.equal(el.getAttribute('class'), 'static goodbye there');
+            t.end();
+        });
     });
 });
 
@@ -184,9 +212,11 @@ test('compiles simple if statements', function (t) {
 
         window.templateUnderTest.update('foo', false);
 
-        t.notOk(visible(window.document.querySelector('a')));
-        t.ok(visible(window.document.querySelector('b')));
-        t.end();
+        wait(function () {
+            t.notOk(visible(window.document.querySelector('a')));
+            t.ok(visible(window.document.querySelector('b')));
+            t.end();
+        });
     });
 });
 
@@ -208,10 +238,11 @@ test('compiles if statements without wrappers', function (t) {
         t.notOk(visible(window.document.querySelector('ul > li.no')));
 
         window.templateUnderTest.update('foo', false);
-
-        t.notOk(visible(window.document.querySelector('ul > li.yes')));
-        t.ok(visible(window.document.querySelector('ul > li.no')));
-        t.end();
+        wait(function () {
+            t.notOk(visible(window.document.querySelector('ul > li.yes')));
+            t.ok(visible(window.document.querySelector('ul > li.no')));
+            t.end();
+        });
     });
 });
 
@@ -233,10 +264,11 @@ test('compiles unless statements without wrappers', function (t) {
         t.ok(visible(window.document.querySelector('ul > li.no')));
 
         window.templateUnderTest.update('foo', false);
-
-        t.ok(visible(window.document.querySelector('ul > li.yes')));
-        t.notOk(visible(window.document.querySelector('ul > li.no')));
-        t.end();
+        wait(function () {
+            t.ok(visible(window.document.querySelector('ul > li.yes')));
+            t.notOk(visible(window.document.querySelector('ul > li.no')));
+            t.end();
+        });
     });
 });
 
@@ -258,10 +290,11 @@ test('if statements dont die if only one sided', function (t) {
         t.notOk(visible(window.document.querySelector('ul > li.no')));
 
         window.templateUnderTest.update('foo', false);
-
-        t.notOk(visible(window.document.querySelector('ul > li.yes')));
-        t.ok(visible(window.document.querySelector('ul > li.no')));
-        t.end();
+        wait(function () {
+            t.notOk(visible(window.document.querySelector('ul > li.yes')));
+            t.ok(visible(window.document.querySelector('ul > li.no')));
+            t.end();
+        });
     });
 });
 
@@ -284,11 +317,14 @@ test('compiles sub-expressions', function (t) {
 
         window.templateUnderTest.update('foo', false);
 
-        t.notOk(visible(window.document.querySelector('ul > li.yes')));
-        t.ok(visible(window.document.querySelector('ul > li.no')));
-        t.end();
+        wait(function () {
+            t.notOk(visible(window.document.querySelector('ul > li.yes')));
+            t.ok(visible(window.document.querySelector('ul > li.no')));
+            t.end();
+        });
     });
 });
+
 
 test('compiles booleans', function (t) {
     var tmpl = s(function () {/*
@@ -309,3 +345,65 @@ test('compiles booleans', function (t) {
         t.end();
     });
 });
+
+test('compiles this:', function (t) {
+    var tmpl = s(function () {/*
+        <div>
+            <a>{{model.src}}</a>
+            {{#if model.src }}
+                <img src="{{model.src}}">
+                <input type="range" min="1" max="5">
+            {{#else }}
+                <b>No image, upload one.</b>
+            {{/if}}
+            <button role='upload'>Upload</button>
+        </div>
+    */});
+
+    var context = {
+        model: {
+            src: undefined
+        }
+    };
+
+    parsePrecompileAndAppend(tmpl, context, builtinHelpers, function (err, window) {
+        var qs = window.document.querySelector.bind(window.document);
+
+        //No source
+        t.equal(qs('a').innerHTML, '');
+        t.notOk(qs('img'));
+        t.ok(qs('b'));
+
+        var f = window.templateUnderTest;
+        //Set source
+        window.templateUnderTest.update('model.src', 'foo');
+
+        wait(function () {
+            t.ok(qs('img'));
+            t.equal(qs('img').getAttribute('src'), 'foo');
+            t.equal(qs('a').innerHTML, 'foo');
+            t.notOk(qs('b'));
+
+            window.templateUnderTest.update('model.src', 'bar');
+            wait(function () {
+                t.ok(qs('img'));
+                t.equal(qs('img').getAttribute('src'), 'bar');
+                t.equal(qs('a').innerHTML, 'bar');
+                t.notOk(qs('b'));
+
+                window.templateUnderTest.update('model.src', undefined);
+
+                wait(function () { 
+                    t.equal(qs('a').innerHTML, '');
+                    t.notOk(qs('img'));
+                    t.ok(qs('b'));
+
+                    t.end();
+                });
+            });
+        });
+
+        return;
+    });
+});
+

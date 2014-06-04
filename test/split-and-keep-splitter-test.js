@@ -10,6 +10,14 @@ test('splits and keeps the bits', function (t) {
     t.end();
 });
 
+
+test('works with neighbouring things', function (t) {
+    var parts = splitter("foo {bar} {bux}{qux}", regex);
+
+    t.deepEqual(parts, ['foo ', '{bar}', ' ', '{bux}', '{qux}']);
+    t.end();
+});
+
 test('splits even at the start', function (t) {
     var parts = splitter("{bar} baz {bux}", regex);
 
