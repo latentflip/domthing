@@ -24,6 +24,22 @@ test('parses simple tags', function (t) {
     ]));
 });
 
+test('parses spaces', function (t) {
+    var template = s(function () {/*
+    <div>
+        <strong></strong>    message: {{ model.payload }}
+    </div>
+    */});
+
+   t.astEqual(template, AST.Template([
+        AST.Element('div', [
+            AST.Element('strong'),
+            AST.TextNode(AST.Literal(' message: ')),
+            AST.TextNode(AST.Binding('model.payload'))
+        ])
+    ]));
+});
+
 
 
 test('parses attributes', function (t) {
