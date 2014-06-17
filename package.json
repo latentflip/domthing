@@ -1,10 +1,10 @@
 {
   "name": "domthing",
-  "version": "0.0.4",
   "description": "This is a thing, that does things with the dom. One day it might be a real thing. Maybe it won't.",
-  "main": "index.js",
-  "directories": {
-    "test": "test"
+  "version": "0.0.4",
+  "bin": "bin/domthing",
+  "bugs": {
+    "url": "https://github.com/latentflip/domthing/issues"
   },
   "dependencies": {
     "async": "^0.9.0",
@@ -23,18 +23,17 @@
     "pegjs": "^0.8.0",
     "tape": "^2.13.1"
   },
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+  "directories": {
+    "test": "test"
   },
+  "homepage": "https://github.com/latentflip/domthing",
+  "license": "ISC",
+  "main": "domthing.js",
   "repository": {
     "type": "git",
     "url": "git://github.com/latentflip/domthing"
   },
-  "author": "",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/latentflip/domthing/issues"
-  },
-  "homepage": "https://github.com/latentflip/domthing",
-  "bin": "bin/domthing"
+  "scripts": {
+    "test": "faucet"
+  }
 }
