@@ -1,0 +1,9 @@
+- [x] Basic compilation
+- [x] Basic bindings
+- [x] Ampersand Integration
+- [ ] Securing attributes etc
+- [ ] Handling weird things like <input type='checkbox' checked='{{foo.active}}'>
+- [ ] Handling {{{ html }}}
+- [ ] Documenting {{ (expressions foo "bar") }}
+- [ ] `each`
+- [ ] Subviews?

@@ -133,7 +133,6 @@ test('compiles attributes with bindings', function (t) {
         window.templateUnderTest.update('url', 'yahoo.com');
         wait(function () {
             t.equal(el.getAttribute('href'), 'yahoo.com');
-            console.log(window._console);
             t.end();
         });
     });
@@ -343,6 +342,38 @@ test('compiles booleans', function (t) {
         t.ok(visible(window.document.querySelector('a')));
         t.notOk(visible(window.document.querySelector('b')));
         t.end();
+    });
+});
+
+test('handles boolean attributes:', function (t) {
+    var tmpl = "<input type='checkbox' checked='{{model.active}}'>";
+    var context = {
+        model: {
+            active: false
+        }
+    };
+
+    parsePrecompileAndAppend(tmpl, context, builtinHelpers, function (err, window) {
+        var el = window.document.querySelector('input');
+
+        t.notOk(el.checked, 'Initially unchecked');
+
+        el.update('model.active', true);
+        wait(function () {
+            t.ok(el.checked, 'Check with a boolean');
+
+            el.update('model.active', undefined);
+            wait(function () {
+                t.notOk(el.checked);
+
+                el.update('model.active', 'farce');
+                wait(function () {
+                    t.ok(el.checked);
+
+                    t.end();
+                });
+            });
+        });
     });
 });
 
