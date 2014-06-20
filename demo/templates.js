@@ -1,5 +1,5 @@
 var templates = {};
-templates._runtime = require('domthing/runtime');
+
 templates['person'] = function (context, runtime) {
   runtime = runtime || this._runtime;
   var template = new runtime.Template();
@@ -11,8 +11,10 @@ templates['person'] = function (context, runtime) {
       expr = (
         runtime.helpers.STREAMIFY_BINDING.call(template, context, 'me.leftStyle')
       );
-      element.setAttribute('style', expr.value);
-      expr.on('change', element.setAttribute.bind(element, 'style'));
+      element[ expr.value ? 'setAttribute' : 'removeAttribute']('style', '');
+      expr.on('change', function (v) {
+        element[ v ? 'setAttribute' : 'removeAttribute']('style', '');
+      });
       (function (parent) {
         (function (parent) {
           var node = document.createTextNode('');
@@ -55,8 +57,10 @@ templates['person'] = function (context, runtime) {
           expr = (
             runtime.helpers.STREAMIFY_BINDING.call(template, context, 'me.profile.style')
           );
-          element.setAttribute('style', expr.value);
-          expr.on('change', element.setAttribute.bind(element, 'style'));
+          element[ expr.value ? 'setAttribute' : 'removeAttribute']('style', '');
+          expr.on('change', function (v) {
+            element[ v ? 'setAttribute' : 'removeAttribute']('style', '');
+          });
           (function (parent) {
             (function (parent) {
               var element = document.createElement('li');
@@ -134,6 +138,19 @@ templates['test'] = function (context, runtime) {
       var element = document.createElement('div');
       var expr;
       (function (parent) {
+        (function (parent) {
+          var element = document.createElement('input');
+          var expr;
+          element.setAttribute('type', 'checkbox');
+          expr = (
+            runtime.helpers.STREAMIFY_BINDING.call(template, context, 'foo')
+          );
+          element[ expr.value ? 'setAttribute' : 'removeAttribute']('checked', '');
+          expr.on('change', function (v) {
+            element[ v ? 'setAttribute' : 'removeAttribute']('checked', '');
+          });
+          parent.appendChild(element);
+        })(parent);
         runtime.helpers['if'].call(template,
           parent,
           context,

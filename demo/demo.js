@@ -1,5 +1,6 @@
 var runtime = require('../runtime');
 var templates = require('./templates');
+templates._runtime = runtime;
 
 var data = {
     foo: true,
@@ -7,7 +8,8 @@ var data = {
     aString: "hello",
     aModel: {
         foo: 'foo'
-    }
+    },
+    active: true
 };
 
 document.addEventListener('DOMContentLoaded', function () {

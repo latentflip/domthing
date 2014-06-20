@@ -9,7 +9,7 @@ runtime.bundle.js: force
 	browserify runtime.js -s RUNTIME > runtime.bundle.js
 
 demo/templates.js: force
-	./bin/domthing demo/templates > demo/templates.js
+	./bin/domthing --no-runtime demo/templates > demo/templates.js
 
 serve-demo: force
 	beefy demo/demo.js --open

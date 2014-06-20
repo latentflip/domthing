@@ -1,4 +1,7 @@
 <div>
+    <input type="checkbox" checked="{{foo}}">
+
+
     {{#if (not (not foo))}}
         <a>hi</a>
     {{#else}}

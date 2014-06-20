@@ -9,6 +9,7 @@
   "dependencies": {
     "async": "^0.9.0",
     "backbone-events-standalone": "^0.2.1",
+    "commander": "^2.2.0",
     "domhandler": "^2.2.0",
     "glob": "^4.0.2",
     "htmlparser2": "^3.7.2",

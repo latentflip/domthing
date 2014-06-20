@@ -1,36 +1,34 @@
 #!/usr/bin/env node
 
-var fs = require('fs');
+//Config CLI
 var path = require('path');
+var program = require('commander');
+
+program
+    .version(require(path.join(__dirname, '..', 'package.json')).version)
+    .option('--no-runtime', 'Omit Runtime')
+    .parse(process.argv);
+
+var fs = require('fs');
 var glob = require('glob');
 var async = require('async');
-
 var domthing = require('../domthing');
 
-var root = path.join(process.cwd(), process.argv[2]);
+var root = path.join(process.cwd(), program.args[0]);
 var match = path.join(root, '**', '*.dom');
 
 glob(match, function (err, paths) {
     if (err) throw err;
+
     async.map(
         paths,
-        function (p, next) {
-            var tmpl = fs.readFileSync(p);
-            domthing.parser(tmpl, function (err, ast) {
-                if (err) return next(err);
-                var compiled = domthing.compiler.compile(ast);
-
-                var parts = path.relative(root, p).split(path.sep);
-                var name = parts[parts.length - 1].split('.')[0];
-
-                next(null, "templates['" + name + "'] = " + compiled + '.bind(templates);');
-            });
-        }, function (err, outputs) {
+        compileTemplate,
+        function (err, outputs) {
             if (err) throw err;
 
             var file = [
                 "var templates = {};",
-                "templates._runtime = require('domthing/runtime');"
+                (program.runtime ? "templates._runtime = require('domthing/runtime');" : "")
             ].concat(outputs).concat([
                 "module.exports = templates;"
             ]);
@@ -39,3 +37,16 @@ glob(match, function (err, paths) {
         }
     );
 });
+
+function compileTemplate(p, next) {
+    var tmpl = fs.readFileSync(p);
+    domthing.parser(tmpl, function (err, ast) {
+        if (err) return next(err);
+        var compiled = domthing.compiler.compile(ast);
+
+        var parts = path.relative(root, p).split(path.sep);
+        var name = parts[parts.length - 1].split('.')[0];
+
+        next(null, "templates['" + name + "'] = " + compiled + '.bind(templates);');
+    });
+}
