@@ -1,8 +1,12 @@
-# What is this?
+# dömthing
+
+(pronounced with as many diphthongs as possible, e.g: do-wum-thay-ang)
+
+## What is this?
 
 A DOM-aware, mustache/handlebars-like, templating engine. Heavily inspired by HTMLBars.
 
-# How do i I use it?
+## How do i I use it?
 
 Check out the demo repo at http://github.com/latentflip/domthing-demo
 
