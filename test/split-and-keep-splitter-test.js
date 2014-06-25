@@ -39,3 +39,13 @@ test('it calls first function on matches and second on spaces', function (t) {
     t.deepEqual(parts, ['??foo ??', '!!{bar}!!', '?? baz ??', '!!{bux}!!', '?? qux??']);
     t.end();
 });
+
+test('it splits this properly', function (t) {
+    var regex =/{{*([^}]*)}}/g;
+    var withStache = function (s) { return '{}'; };
+    var withSpace = function (s) { return 's'; };
+
+    var parts = splitter(' {{foo}} ', regex, withStache, withSpace);
+    t.deepEqual(parts, ['s', '{}', 's']);
+    t.end();
+});

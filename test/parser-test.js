@@ -25,22 +25,50 @@ test('parses simple tags', function (t) {
 });
 
 test('parses spaces', function (t) {
-    var template = s(function () {/*
-    <div>
-        <strong></strong>    message: {{ model.payload }}
-    </div>
-    */});
+    var template = [
+        "<div>",
+        "  <strong></strong>   message: {{ model.payload }} ",
+        "</div>"
+    ].join('\n');
 
-   t.astEqual(template, AST.Template([
+    t.astEqual(template, AST.Template([
         AST.Element('div', [
+            AST.TextNode(AST.Literal(' ')),
             AST.Element('strong'),
             AST.TextNode(AST.Literal(' message: ')),
-            AST.TextNode(AST.Binding('model.payload'))
-        ])
+            AST.TextNode(AST.Binding('model.payload')),
+            AST.TextNode(AST.Literal(' ')),
+        ]),
     ]));
 });
 
+test('parses this properly', function (t) {
+    var tmpl = [
+        "<li>",
+        "    <a>hello</a>",
+        "    {{foo}}",
+        "    <a>there</a>",
+        "</li>",
+    ].join('\n');
 
+    t.astEqual(tmpl, AST.Template([
+        AST.Element('li', [
+            AST.TextNode(AST.Literal(' ')),
+
+            AST.Element('a', [
+                AST.TextNode(AST.Literal('hello'))
+            ]),    
+            AST.TextNode(AST.Literal(' ')),
+            AST.TextNode(AST.Binding('foo')),
+            AST.TextNode(AST.Literal(' ')),
+            AST.Element('a', [
+                AST.TextNode(AST.Literal('there'))
+            ]),
+
+            AST.TextNode(AST.Literal(' ')),
+        ]),
+    ]));
+});
 
 test('parses attributes', function (t) {
     t.astEqual("<a href='foo' class='bar' id='baz'></a>", AST.Template([
@@ -121,107 +149,148 @@ test('parses siblings', function (t) {
 
 
 test('parses if statements', function (t) {
-    t.astEqual(s(function () {/*
-        {{#if foo }}
-            <a></a><b></b>
-        {{/if}}
-    */}), AST.Template([
+    t.astEqual([
+        "{{#if foo }}",
+        "    <a></a><b></b>",
+        "{{/if}}",
+    ].join('\n'), AST.Template([
         AST.BlockStatement('if', AST.Binding('foo'), [
+            AST.TextNode(AST.Literal(' ')),
             AST.Element('a'),
             AST.Element('b'),
-        ])
+            AST.TextNode(AST.Literal(' ')),
+        ]),
     ]));
 });
 
 test('parses if/else statements', function (t) {
-    t.astEqual(s(function () {/*
-        {{#if foo }}
-            <a></a>
-        {{#else }}
-            <b></b>
-        {{/if}}
-    */}), AST.Template([
+    var tmpl = [
+        "{{#if foo }}",
+        "    <a></a>",
+        "{{#else }}",
+        "    <b></b>",
+        "{{/if}}",
+    ].join('\n');
+
+    t.astEqual(tmpl, AST.Template([
         AST.BlockStatement('if', AST.Binding('foo'), [
-            AST.Element('a')
+            AST.TextNode(AST.Literal(' ')),
+            AST.Element('a'),
+            AST.TextNode(AST.Literal(' ')),
         ], [
-            AST.Element('b')
+            AST.TextNode(AST.Literal(' ')),
+            AST.Element('b'),
+            AST.TextNode(AST.Literal(' ')),
         ])
     ]));
 });
 
 test('handles blocks in text', function (t) {
-    t.astEqual(s(function () {/*
-        <p>
-            {{#if foo }}
-                hello
-            {{#else }}
-                goodbye
-            {{/if}}
-        </p>
-    */}), AST.Template([
+    var tmpl = [
+        "<p>",
+        "    {{#if foo }}",
+        "        hello",
+        "    {{#else }}",
+        "        goodbye",
+        "    {{/if}}",
+        "</p>",
+    ].join('\n');
+
+    t.astEqual(tmpl, AST.Template([
         AST.Element('p', [
+            AST.TextNode(AST.Literal(' ')),
             AST.BlockStatement('if', AST.Binding('foo'), [
                 AST.TextNode( AST.Literal(' hello ') )
             ], [
                 AST.TextNode( AST.Literal(' goodbye ') )
-            ])
+            ]),
+            AST.TextNode(AST.Literal(' ')),
         ])
     ]));
 });
 
 test('parses nested if/else statements', function (t) {
+    var tmpl = [
+        "{{#if foo }}",
+        "    {{#if bar }}",
+        "        <a></a>",
+        "    {{#else }}",
+        "        <c></c>",
+        "   {{/if}}",
+        "{{#else }}",
+        "    <b></b>",
+        "{{/if}}",
+    ].join('\n');
 
-    t.astEqual(s(function () {/*
-        {{#if foo }}
-            {{#if bar }}
-                <a></a>
-            {{#else }}
-                <c></c>
-           {{/if}}
-        {{#else }}
-            <b></b>
-        {{/if}}
-    */}), AST.Template([
+    t.astEqual(tmpl, AST.Template([
         AST.BlockStatement('if', AST.Binding('foo'), [
+            AST.TextNode(AST.Literal(' ')),
             AST.BlockStatement('if', AST.Binding('bar'), [
-                AST.Element('a')
+                AST.TextNode(AST.Literal(' ')),
+                AST.Element('a'),
+                AST.TextNode(AST.Literal(' ')),
             ], [
-                AST.Element('c')
-            ])
+                AST.TextNode(AST.Literal(' ')),
+                AST.Element('c'),
+                AST.TextNode(AST.Literal(' ')),
+            ]),
+            AST.TextNode(AST.Literal(' ')),
         ], [
-            AST.Element('b')
+            AST.TextNode(AST.Literal(' ')),
+            AST.Element('b'),
+            AST.TextNode(AST.Literal(' ')),
         ])
     ]));
 });
 
 test('parses unless statements', function (t) {
-    t.astEqual(s(function () {/*
-        {{#unless foo }}
-            <a></a>
-        {{#else }}
-            <b></b>
-        {{/if}}
-    */}), AST.Template([
+    var tmpl = [
+        "{{#unless foo }}",
+        "    <a></a>",
+        "{{#else }}",
+        "    <b></b>",
+        "{{/if}}",
+    ].join('\n');
+
+    t.astEqual(tmpl, AST.Template([
         AST.BlockStatement('unless', AST.Binding('foo'), [
-            AST.Element('a')
+            AST.TextNode(AST.Literal(' ')),
+            AST.Element('a'),
+            AST.TextNode(AST.Literal(' ')),
         ], [
-            AST.Element('b')
+            AST.TextNode(AST.Literal(' ')),
+            AST.Element('b'),
+            AST.TextNode(AST.Literal(' ')),
         ])
     ]));
 });
 
 test('parses sub-expressions', function (t) {
-    t.astEqual(s(function () {/*
-        {{#if (not foo)}}
-            <a></a>
-        {{/if}}
-    */}), AST.Template([
+    var tmpl = [
+        "{{#if (not foo)}}",
+        "    <a></a>",
+        "{{/if}}",
+    ].join('\n');
+    
+    t.astEqual(tmpl, AST.Template([
         AST.BlockStatement(
             'if',
             AST.Expression('not', [AST.Binding('foo')]),
             [
-                AST.Element('a')
+                AST.TextNode(AST.Literal(' ')),
+                AST.Element('a'),
+                AST.TextNode(AST.Literal(' ')),
             ]
         )
+    ]));
+});
+
+test('parses expressions in bindings', function (t) {
+    var tmpl = "<span class='{{ (sw foo \"bar\" baz) }}'></span>";
+
+    t.astEqual(tmpl, AST.Template([
+        AST.Element('span', {
+            class: AST.Expression('sw', [AST.Binding('foo'), AST.Literal("bar"), AST.Binding("baz")])
+        })
     ]));
 });

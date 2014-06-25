@@ -1,13 +1,12 @@
-var compiler = require('../lib/compiler');
-var parser = require('../lib/parser');
+var compiler = require('../../lib/compiler');
+var parser = require('../../lib/parser');
 var test = require('tape');
 var s = require('multiline');
 var compile = compiler.compile;
 var deval = require('deval');
-var jsdom = require('jsdom');
-var builtinHelpers = require('../lib/runtime/helpers');
+//var jsdom = require('jsdom');
+var builtinHelpers = require('../../lib/runtime/helpers');
 var fs = require('fs');
-var AST = require('../lib/AST');
 
 var visible = function (el) {
     return el;
@@ -16,54 +15,7 @@ var wait = function (fn) {
     setTimeout(fn, 25);
 };
 
-var precompileAndAppend = function (ast, context, helpers, cb) {
-    if (!cb && !helpers && typeof context === 'function') {
-        cb = context;
-        context = {};
-    }
-    var strFn = compile(ast);
-
-    //useful for debug
-    //console.log(JSON.stringify(ast, null, 2));
-    //console.log(strFn);
-
-    var window = deval(function () {
-        window._console = [];
-        window.console = {
-            log: function () {
-                window._console.push([].slice.call(arguments));
-            }
-        };
-        window.requestAnimationFrame = function (cb) { setTimeout(cb, 0); };
-    });
-
-    var inject = deval(function (strFn, context) {
-        var tmpl = $strFn$;
-        var fragment = tmpl($context$, window.RUNTIME);
-        document.querySelector('#output').appendChild(fragment);
-        window.templateUnderTest = fragment;
-    }, strFn, JSON.stringify(context));
-
-    jsdom.env({
-        html: '<div id=output></div>',
-        src: [
-            window + ';' + fs.readFileSync(__dirname + '/../runtime.bundle.js').toString() + ';' +  inject
-        ],
-        done: function (err, window) {
-            if (err) {
-                console.log('JSDOM Errors:', err);
-                throw err;
-            }
-            cb(null, window);
-        }
-    });
-};
-
-var parsePrecompileAndAppend = function (template, context, helpers, cb) {
-    parser(template, function (err, ast) {
-        precompileAndAppend(ast, context, helpers, cb);
-    });
-};
+var parsePrecompileAndAppend = require('../helpers/parsePrecompileAndAppend');
 
 test('compiles simple nodes', function (t) {
     parsePrecompileAndAppend('<a></a>', function (err, window) {
@@ -75,7 +27,8 @@ test('compiles simple nodes', function (t) {
 test('compiles attributes', function (t) {
     var template = '<a id="baz" class="bar" href="foo"></a>';
     parsePrecompileAndAppend(template, function (err, window) {
-        var el = window.document.querySelector('a');
+        var el = window.document.querySelector('#output a');
+        console.log('!' +  el.outerHTML + '!');
         t.equal(el.getAttribute('href'), 'foo');
         t.equal(el.getAttribute('class'), 'bar');
         t.equal(el.getAttribute('id'), 'baz');
@@ -87,14 +40,14 @@ test('compiles multiline attributes', function (t) {
     var template = s(function () {/*
         <a id="baz" style="
             color: red;
-            border: 1px red solid;
+            border: 1px solid red;
         " href="foo"></a>
     */});
 
     parsePrecompileAndAppend(template, function (err, window) {
         var el = window.document.querySelector('a');
         t.equal(el.style.color, 'red');
-        t.equal(el.style.border, '1px red solid');
+        t.equal(el.style.border, '1px solid red');
         t.equal(el.getAttribute('href'), 'foo');
         t.end();
     });
@@ -125,14 +78,14 @@ test('compiles textNode with simple bindings', function (t) {
 
 test('compiles attributes with bindings', function (t) {
     var template = '<a href="{{url}}">a link</a>';
-    var context = { url: 'google.com' };
+    var context = { url: 'http://google.com' };
 
     parsePrecompileAndAppend(template, context, builtinHelpers, function (err, window) {
         var el = window.document.querySelector('a');
-        t.equal(el.getAttribute('href'), 'google.com');
-        window.templateUnderTest.update('url', 'yahoo.com');
+        t.equal(el.getAttribute('href'), 'http://google.com/');
+        window.templateUnderTest.update('url', 'http://yahoo.com');
         wait(function () {
-            t.equal(el.getAttribute('href'), 'yahoo.com');
+            t.equal(el.getAttribute('href'), 'http://yahoo.com/');
             t.end();
         });
     });
@@ -153,26 +106,24 @@ test('compiles expressions', function (t) {
 });
 
 test('compiles siblings', function (t) {
-    parser('<div><a id=one>foo</a><a id=two>bar</a></div>', function (err, ast) {
-        precompileAndAppend(ast, function (err, window) {
-            var el1 = window.document.querySelector('#one');
-            t.equal(el1.innerHTML, 'foo');
+    var tmpl = '<div><a id=one>foo</a><a id=two>bar</a></div>';
+    parsePrecompileAndAppend(tmpl, function (err, window) {
+        var el1 = window.document.querySelector('#one');
+        t.equal(el1.innerHTML, 'foo');
 
-            var el2 = window.document.querySelector('#two');
-            t.equal(el2.innerHTML, 'bar');
+        var el2 = window.document.querySelector('#two');
+        t.equal(el2.innerHTML, 'bar');
 
-            t.end();
-        });
+        t.end();
     });
 });
 
 test('compiles nested', function (t) {
-    parser('<a><span>foo</span></a>', function (err, ast) {
-        precompileAndAppend(ast, function (err, window) {
-            var span = window.document.querySelector('a span');
-            t.equal(span.innerHTML, 'foo');
-            t.end();
-        });
+    var tmpl = '<a><span>foo</span></a>';
+    parsePrecompileAndAppend(tmpl, function (err, window) {
+        var span = window.document.querySelector('a span');
+        t.equal(span.innerHTML, 'foo');
+        t.end();
     });
 });
 
@@ -190,6 +141,27 @@ test('updates magical class bindings', function (t) {
             t.equal(el.getAttribute('class'), 'static goodbye there');
             t.end();
         });
+    });
+});
+
+test('spaces things properly', function (t) {
+    var tmpl = s(function () {/*
+        <li>
+            <a>hello</a>
+            {{foo}}
+            <a>there</a>
+        </li>
+    */});
+
+    t.plan(2);
+
+    parsePrecompileAndAppend(tmpl, {foo: 'binding'}, builtinHelpers, function (err, window) {
+        t.equal(window.document.querySelector('li').textContent, ' hello binding there ');
+    });
+
+    var tmpl2 = "<li><a>hello</a>{{foo}}<a>there</a></li>";
+    parsePrecompileAndAppend(tmpl2, {foo: 'binding'}, builtinHelpers, function (err, window) {
+        t.equal(window.document.querySelector('li').textContent, 'hellobindingthere');
     });
 });
 
@@ -407,24 +379,24 @@ test('compiles this:', function (t) {
 
         var f = window.templateUnderTest;
         //Set source
-        window.templateUnderTest.update('model.src', 'foo');
+        window.templateUnderTest.update('model.src', 'http://foo.com/a');
 
         wait(function () {
             t.ok(qs('img'));
-            t.equal(qs('img').getAttribute('src'), 'foo');
-            t.equal(qs('a').innerHTML, 'foo');
+            t.equal(qs('img').getAttribute('src'), 'http://foo.com/a');
+            t.equal(qs('a').innerHTML, 'http://foo.com/a');
             t.notOk(qs('b'));
 
-            window.templateUnderTest.update('model.src', 'bar');
+            window.templateUnderTest.update('model.src', 'http://bar.com/a');
             wait(function () {
                 t.ok(qs('img'));
-                t.equal(qs('img').getAttribute('src'), 'bar');
-                t.equal(qs('a').innerHTML, 'bar');
+                t.equal(qs('img').getAttribute('src'), 'http://bar.com/a');
+                t.equal(qs('a').innerHTML, 'http://bar.com/a');
                 t.notOk(qs('b'));
 
                 window.templateUnderTest.update('model.src', undefined);
 
-                wait(function () { 
+                wait(function () {
                     t.equal(qs('a').innerHTML, '');
                     t.notOk(qs('img'));
                     t.ok(qs('b'));

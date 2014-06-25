@@ -12,6 +12,15 @@ test('simple functions', function (t) {
     );
 
     t.deepEqual(
+        parse('(sw foo "bar" baz)'),
+        AST.Expression('sw', [
+            AST.Binding('foo'),
+            AST.Literal('bar'),
+            AST.Binding('baz')
+        ])
+    );
+
+    t.deepEqual(
         parse('(not true false)'),
         AST.Expression('not', [
             AST.Literal(true),
