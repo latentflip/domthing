@@ -39,7 +39,7 @@ glob(match, function (err, paths) {
 });
 
 function compileTemplate(p, next) {
-    var tmpl = fs.readFileSync(p);
+    var tmpl = fs.readFileSync(p).toString();
     domthing.parser(tmpl, function (err, ast) {
         if (err) return next(err);
         var compiled = domthing.compiler.compile(ast);
