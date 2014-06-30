@@ -271,7 +271,7 @@ test('parses sub-expressions', function (t) {
         "    <a></a>",
         "{{/if}}",
     ].join('\n');
-    
+
     t.astEqual(tmpl, AST.Template([
         AST.BlockStatement(
             'if',
@@ -292,5 +292,30 @@ test('parses expressions in bindings', function (t) {
         AST.Element('span', {
             class: AST.Expression('sw', [AST.Binding('foo'), AST.Literal("bar"), AST.Binding("baz")])
         })
+    ]));
+});
+
+test('parses expressions in bindings', function (t) {
+    var tmpl = "<span class='{{ (log foo.bar )}}'></span>";
+
+    t.astEqual(tmpl, AST.Template([
+        AST.Element('span', {
+            class: AST.Expression('log', [AST.Binding('foo.bar')])
+        })
+    ]));
+});
+
+test('handles hyphens somehow in bindings', function (t) {
+    var tmpl = [
+        '<li><input data-grid="{{data-grid}}" type="checkbox" /></li>'
+    ].join('\n');
+
+    t.astEqual(tmpl, AST.Template([
+        AST.Element('li', [
+            AST.Element('input', {
+                'data-grid': AST.Binding('data-grid'),
+                type: AST.Literal('checkbox')
+            })
+        ])
     ]));
 });
