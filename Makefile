@@ -3,7 +3,7 @@ PATH := node_modules/.bin:$(PATH)
 .PHONY: test
 .PHONY: force
 
-all: runtime.bundle.js demo/templates.js
+all: lib/sexp-parser.js runtime.bundle.js demo/templates.js
 
 runtime.bundle.js: force
 	browserify runtime.js -s RUNTIME > runtime.bundle.js
