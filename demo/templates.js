@@ -21,8 +21,8 @@ templates['person'] = function (context, runtime) {
           var expr = (
             runtime.hooks.EVENTIFY_BINDING.call(template, context, 'me.name')
           );
-          var node = document.createTextNode(expr.value || '');
-          expr.on('change', function (text) { node.data = text ? text : ''; });
+          var node = document.createTextNode((expr.value||expr.value===0) ? expr.value : '');
+          expr.on('change', function (text) { node.data = (text||text===0) ? text : ''; });
           parent.appendChild(node);
         })(parent);
       })(element);
@@ -32,8 +32,8 @@ templates['person'] = function (context, runtime) {
       var expr = (
         runtime.hooks.EVENTIFY_LITERAL.call(template, " ")
       );
-      var node = document.createTextNode(expr.value || '');
-      expr.on('change', function (text) { node.data = text ? text : ''; });
+      var node = document.createTextNode((expr.value||expr.value===0) ? expr.value : '');
+      expr.on('change', function (text) { node.data = (text||text===0) ? text : ''; });
       parent.appendChild(node);
     })(parent);
     runtime.hooks.HELPER('if', [
@@ -47,8 +47,8 @@ templates['person'] = function (context, runtime) {
           var expr = (
             runtime.hooks.EVENTIFY_LITERAL.call(template, " ")
           );
-          var node = document.createTextNode(expr.value || '');
-          expr.on('change', function (text) { node.data = text ? text : ''; });
+          var node = document.createTextNode((expr.value||expr.value===0) ? expr.value : '');
+          expr.on('change', function (text) { node.data = (text||text===0) ? text : ''; });
           parent.appendChild(node);
         })(parent);
         (function (parent) {
@@ -59,8 +59,8 @@ templates['person'] = function (context, runtime) {
               var expr = (
                 runtime.hooks.EVENTIFY_LITERAL.call(template, "Profile")
               );
-              var node = document.createTextNode(expr.value || '');
-              expr.on('change', function (text) { node.data = text ? text : ''; });
+              var node = document.createTextNode((expr.value||expr.value===0) ? expr.value : '');
+              expr.on('change', function (text) { node.data = (text||text===0) ? text : ''; });
               parent.appendChild(node);
             })(parent);
           })(element);
@@ -70,8 +70,8 @@ templates['person'] = function (context, runtime) {
           var expr = (
             runtime.hooks.EVENTIFY_LITERAL.call(template, " ")
           );
-          var node = document.createTextNode(expr.value || '');
-          expr.on('change', function (text) { node.data = text ? text : ''; });
+          var node = document.createTextNode((expr.value||expr.value===0) ? expr.value : '');
+          expr.on('change', function (text) { node.data = (text||text===0) ? text : ''; });
           parent.appendChild(node);
         })(parent);
         (function (parent) {
@@ -89,8 +89,8 @@ templates['person'] = function (context, runtime) {
               var expr = (
                 runtime.hooks.EVENTIFY_LITERAL.call(template, " ")
               );
-              var node = document.createTextNode(expr.value || '');
-              expr.on('change', function (text) { node.data = text ? text : ''; });
+              var node = document.createTextNode((expr.value||expr.value===0) ? expr.value : '');
+              expr.on('change', function (text) { node.data = (text||text===0) ? text : ''; });
               parent.appendChild(node);
             })(parent);
             (function (parent) {
@@ -101,24 +101,24 @@ templates['person'] = function (context, runtime) {
                   var expr = (
                     runtime.hooks.EVENTIFY_LITERAL.call(template, "age: ")
                   );
-                  var node = document.createTextNode(expr.value || '');
-                  expr.on('change', function (text) { node.data = text ? text : ''; });
+                  var node = document.createTextNode((expr.value||expr.value===0) ? expr.value : '');
+                  expr.on('change', function (text) { node.data = (text||text===0) ? text : ''; });
                   parent.appendChild(node);
                 })(parent);
                 (function (parent) {
                   var expr = (
                     runtime.hooks.EVENTIFY_BINDING.call(template, context, 'me.profile.age')
                   );
-                  var node = document.createTextNode(expr.value || '');
-                  expr.on('change', function (text) { node.data = text ? text : ''; });
+                  var node = document.createTextNode((expr.value||expr.value===0) ? expr.value : '');
+                  expr.on('change', function (text) { node.data = (text||text===0) ? text : ''; });
                   parent.appendChild(node);
                 })(parent);
                 (function (parent) {
                   var expr = (
                     runtime.hooks.EVENTIFY_LITERAL.call(template, " ")
                   );
-                  var node = document.createTextNode(expr.value || '');
-                  expr.on('change', function (text) { node.data = text ? text : ''; });
+                  var node = document.createTextNode((expr.value||expr.value===0) ? expr.value : '');
+                  expr.on('change', function (text) { node.data = (text||text===0) ? text : ''; });
                   parent.appendChild(node);
                 })(parent);
               })(element);
@@ -132,24 +132,24 @@ templates['person'] = function (context, runtime) {
                   var expr = (
                     runtime.hooks.EVENTIFY_LITERAL.call(template, "height: ")
                   );
-                  var node = document.createTextNode(expr.value || '');
-                  expr.on('change', function (text) { node.data = text ? text : ''; });
+                  var node = document.createTextNode((expr.value||expr.value===0) ? expr.value : '');
+                  expr.on('change', function (text) { node.data = (text||text===0) ? text : ''; });
                   parent.appendChild(node);
                 })(parent);
                 (function (parent) {
                   var expr = (
                     runtime.hooks.EVENTIFY_BINDING.call(template, context, 'me.profile.height')
                   );
-                  var node = document.createTextNode(expr.value || '');
-                  expr.on('change', function (text) { node.data = text ? text : ''; });
+                  var node = document.createTextNode((expr.value||expr.value===0) ? expr.value : '');
+                  expr.on('change', function (text) { node.data = (text||text===0) ? text : ''; });
                   parent.appendChild(node);
                 })(parent);
                 (function (parent) {
                   var expr = (
                     runtime.hooks.EVENTIFY_LITERAL.call(template, " ")
                   );
-                  var node = document.createTextNode(expr.value || '');
-                  expr.on('change', function (text) { node.data = text ? text : ''; });
+                  var node = document.createTextNode((expr.value||expr.value===0) ? expr.value : '');
+                  expr.on('change', function (text) { node.data = (text||text===0) ? text : ''; });
                   parent.appendChild(node);
                 })(parent);
               })(element);
@@ -162,8 +162,8 @@ templates['person'] = function (context, runtime) {
           var expr = (
             runtime.hooks.EVENTIFY_LITERAL.call(template, " ")
           );
-          var node = document.createTextNode(expr.value || '');
-          expr.on('change', function (text) { node.data = text ? text : ''; });
+          var node = document.createTextNode((expr.value||expr.value===0) ? expr.value : '');
+          expr.on('change', function (text) { node.data = (text||text===0) ? text : ''; });
           parent.appendChild(node);
         })(parent);
       },
@@ -173,8 +173,8 @@ templates['person'] = function (context, runtime) {
       var expr = (
         runtime.hooks.EVENTIFY_LITERAL.call(template, " ")
       );
-      var node = document.createTextNode(expr.value || '');
-      expr.on('change', function (text) { node.data = text ? text : ''; });
+      var node = document.createTextNode((expr.value||expr.value===0) ? expr.value : '');
+      expr.on('change', function (text) { node.data = (text||text===0) ? text : ''; });
       parent.appendChild(node);
     })(parent);
     (function (parent) {
@@ -201,8 +201,8 @@ templates['test'] = function (context, runtime) {
           var expr = (
             runtime.hooks.EVENTIFY_LITERAL.call(template, " ")
           );
-          var node = document.createTextNode(expr.value || '');
-          expr.on('change', function (text) { node.data = text ? text : ''; });
+          var node = document.createTextNode((expr.value||expr.value===0) ? expr.value : '');
+          expr.on('change', function (text) { node.data = (text||text===0) ? text : ''; });
           parent.appendChild(node);
         })(parent);
         (function (parent) {
@@ -222,8 +222,8 @@ templates['test'] = function (context, runtime) {
           var expr = (
             runtime.hooks.EVENTIFY_LITERAL.call(template, " ")
           );
-          var node = document.createTextNode(expr.value || '');
-          expr.on('change', function (text) { node.data = text ? text : ''; });
+          var node = document.createTextNode((expr.value||expr.value===0) ? expr.value : '');
+          expr.on('change', function (text) { node.data = (text||text===0) ? text : ''; });
           parent.appendChild(node);
         })(parent);
         (function (parent) {
@@ -245,8 +245,8 @@ templates['test'] = function (context, runtime) {
           var expr = (
             runtime.hooks.EVENTIFY_LITERAL.call(template, " ")
           );
-          var node = document.createTextNode(expr.value || '');
-          expr.on('change', function (text) { node.data = text ? text : ''; });
+          var node = document.createTextNode((expr.value||expr.value===0) ? expr.value : '');
+          expr.on('change', function (text) { node.data = (text||text===0) ? text : ''; });
           parent.appendChild(node);
         })(parent);
         runtime.hooks.HELPER('if', [
@@ -264,8 +264,8 @@ templates['test'] = function (context, runtime) {
               var expr = (
                 runtime.hooks.EVENTIFY_LITERAL.call(template, " ")
               );
-              var node = document.createTextNode(expr.value || '');
-              expr.on('change', function (text) { node.data = text ? text : ''; });
+              var node = document.createTextNode((expr.value||expr.value===0) ? expr.value : '');
+              expr.on('change', function (text) { node.data = (text||text===0) ? text : ''; });
               parent.appendChild(node);
             })(parent);
             (function (parent) {
@@ -276,8 +276,8 @@ templates['test'] = function (context, runtime) {
                   var expr = (
                     runtime.hooks.EVENTIFY_LITERAL.call(template, "hi")
                   );
-                  var node = document.createTextNode(expr.value || '');
-                  expr.on('change', function (text) { node.data = text ? text : ''; });
+                  var node = document.createTextNode((expr.value||expr.value===0) ? expr.value : '');
+                  expr.on('change', function (text) { node.data = (text||text===0) ? text : ''; });
                   parent.appendChild(node);
                 })(parent);
               })(element);
@@ -287,8 +287,8 @@ templates['test'] = function (context, runtime) {
               var expr = (
                 runtime.hooks.EVENTIFY_LITERAL.call(template, " ")
               );
-              var node = document.createTextNode(expr.value || '');
-              expr.on('change', function (text) { node.data = text ? text : ''; });
+              var node = document.createTextNode((expr.value||expr.value===0) ? expr.value : '');
+              expr.on('change', function (text) { node.data = (text||text===0) ? text : ''; });
               parent.appendChild(node);
             })(parent);
           },
@@ -297,8 +297,8 @@ templates['test'] = function (context, runtime) {
               var expr = (
                 runtime.hooks.EVENTIFY_LITERAL.call(template, " ")
               );
-              var node = document.createTextNode(expr.value || '');
-              expr.on('change', function (text) { node.data = text ? text : ''; });
+              var node = document.createTextNode((expr.value||expr.value===0) ? expr.value : '');
+              expr.on('change', function (text) { node.data = (text||text===0) ? text : ''; });
               parent.appendChild(node);
             })(parent);
             (function (parent) {
@@ -309,8 +309,8 @@ templates['test'] = function (context, runtime) {
                   var expr = (
                     runtime.hooks.EVENTIFY_LITERAL.call(template, "there")
                   );
-                  var node = document.createTextNode(expr.value || '');
-                  expr.on('change', function (text) { node.data = text ? text : ''; });
+                  var node = document.createTextNode((expr.value||expr.value===0) ? expr.value : '');
+                  expr.on('change', function (text) { node.data = (text||text===0) ? text : ''; });
                   parent.appendChild(node);
                 })(parent);
               })(element);
@@ -320,8 +320,8 @@ templates['test'] = function (context, runtime) {
               var expr = (
                 runtime.hooks.EVENTIFY_LITERAL.call(template, " ")
               );
-              var node = document.createTextNode(expr.value || '');
-              expr.on('change', function (text) { node.data = text ? text : ''; });
+              var node = document.createTextNode((expr.value||expr.value===0) ? expr.value : '');
+              expr.on('change', function (text) { node.data = (text||text===0) ? text : ''; });
               parent.appendChild(node);
             })(parent);
         }]);
@@ -329,8 +329,8 @@ templates['test'] = function (context, runtime) {
           var expr = (
             runtime.hooks.EVENTIFY_LITERAL.call(template, " ")
           );
-          var node = document.createTextNode(expr.value || '');
-          expr.on('change', function (text) { node.data = text ? text : ''; });
+          var node = document.createTextNode((expr.value||expr.value===0) ? expr.value : '');
+          expr.on('change', function (text) { node.data = (text||text===0) ? text : ''; });
           parent.appendChild(node);
         })(parent);
       })(element);

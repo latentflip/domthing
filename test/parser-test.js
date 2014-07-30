@@ -57,7 +57,7 @@ test('parses this properly', function (t) {
 
             AST.Element('a', [
                 AST.TextNode(AST.Literal('hello'))
-            ]),    
+            ]),
             AST.TextNode(AST.Literal(' ')),
             AST.TextNode(AST.Binding('foo')),
             AST.TextNode(AST.Literal(' ')),
@@ -77,6 +77,14 @@ test('parses attributes', function (t) {
             class: AST.Literal('bar'),
             id: AST.Literal('baz'),
         })
+    ]));
+});
+
+test('parses raw html bindings', function (t) {
+    t.astEqual('<div>{{{ foo }}}</div>', AST.Template([
+        AST.Element('div', [
+            AST.DocumentFragment(AST.Binding('foo'))
+        ])
     ]));
 });
 

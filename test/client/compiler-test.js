@@ -61,6 +61,49 @@ test('compiles textNodes', function (t) {
     });
 });
 
+test('compiles raw html', function (t) {
+    var tmpl = s(function () {/*
+        <div class="container">
+            <span class="before"></span>
+            {{{ html }}}
+            <span class="after"></span>
+        </div>
+    */});
+
+    var context = {
+        html: "<a></a><b></b>"
+    };
+
+    parsePrecompileAndAppend(tmpl, context, builtinHelpers, function (err, window) {
+        var qs = window.document.querySelector.bind(window.document);
+        var div = qs('.container');
+        t.equal(div.children[0].getAttribute('class'), 'before');
+        t.equal(div.children[1].outerHTML, '<a></a>');
+        t.equal(div.children[2].outerHTML, '<b></b>');
+        t.equal(div.children[3].getAttribute('class'), 'after');
+
+        window.templateUnderTest.update('html', '');
+        wait(function () {
+            var div = qs('.container');
+            t.equal(div.children[0].getAttribute('class'), 'before');
+            t.equal(div.children[1].getAttribute('class'), 'after');
+            t.notOk(qs('a'));
+            t.notOk(qs('b'));
+
+            window.templateUnderTest.update('html', '<em></em>');
+            wait(function () {
+                var div = qs('.container');
+                t.equal(div.children[0].getAttribute('class'), 'before');
+                t.equal(div.children[1].outerHTML, '<em></em>');
+                t.equal(div.children[2].getAttribute('class'), 'after');
+                t.notOk(qs('a'));
+                t.notOk(qs('b'));
+                t.end();
+            });
+        });
+    });
+});
+
 test('compiles textNode with simple bindings', function (t) {
     var template = '<a>{{foo}}</a>';
     var context = { foo: 'hello' };
@@ -186,6 +229,43 @@ test('compiles simple if statements', function (t) {
         wait(function () {
             t.notOk(visible(window.document.querySelector('a')));
             t.ok(visible(window.document.querySelector('b')));
+            t.end();
+        });
+    });
+});
+
+test('compiles complex if statements', function (t) {
+    var tmpl = s(function () {/*
+        <div class='if-wrap'>
+            <pre></pre>
+            {{#if foo}}
+                <a></a>
+                <b></b>
+            {{#else}}
+                <c></c>
+                <d></d>
+            {{/if}}
+            <post></post>
+        </div>
+    */});
+    var context = { foo: true };
+
+    parsePrecompileAndAppend(tmpl, context, builtinHelpers, function (err, window) {
+        var qs = window.document.querySelector.bind(window.document);
+        var div = qs('.if-wrap');
+        t.equal(div.children[0].tagName, 'PRE');
+        t.equal(div.children[1].tagName, 'A');
+        t.equal(div.children[2].tagName, 'B');
+        t.equal(div.children[3].tagName, 'POST');
+
+        window.templateUnderTest.update('foo', false);
+        wait(function () {
+            var div = qs('.if-wrap');
+            console.log(div.outerHTML);
+            t.equal(div.children[0].tagName, 'PRE');
+            t.equal(div.children[1].tagName, 'C');
+            t.equal(div.children[2].tagName, 'D');
+            t.equal(div.children[3].tagName, 'POST');
             t.end();
         });
     });
