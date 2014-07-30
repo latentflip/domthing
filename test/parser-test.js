@@ -8,6 +8,8 @@ test.Test.prototype.astEqual = function (tmpl, expected) {
     var t = this;
     t.plan(2);
     parse(tmpl, function (err, ast) {
+        console.log(JSON.stringify(expected, null, 2));
+        console.log(JSON.stringify(ast, null, 2));
         t.notOk(err);
         t.deepEqual(ast, expected);
     });
@@ -89,7 +91,7 @@ test('parses raw html bindings', function (t) {
 });
 
 test('parses raw expressions in attributes', function (t) {
-    t.astEqual('<a href="{{{ (if model.foo "a" "b") }}}"></a>', AST.Template([
+    t.astEqual("<a href='{{{ (if model.foo \"a\" \"b\") }}}'></a>", AST.Template([
         AST.Element('a', {
             href: AST.Expression('safe', [
                 AST.Expression('if', [
@@ -308,7 +310,7 @@ test('parses sub-expressions', function (t) {
 });
 
 test('parses expressions in bindings', function (t) {
-    var tmpl = '<span class="{{ (sw foo "bar" baz) }}"></span>';
+    var tmpl = "<span class='{{ (sw foo \"bar\" baz)}}'></span>";
 
     t.astEqual(tmpl, AST.Template([
         AST.Element('span', {
@@ -329,7 +331,7 @@ test('parses expressions in text nodes', function (t) {
     ]));
 });
 
-test('parses expressions in bindings', function (t) {
+test('parses log expressions in bindings', function (t) {
     var tmpl = "<span class='{{ (log foo.bar )}}'></span>";
 
     t.astEqual(tmpl, AST.Template([
