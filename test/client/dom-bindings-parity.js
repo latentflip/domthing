@@ -52,7 +52,7 @@ test('set attribute', function (t) {
 });
 
 test('booleanClass', function (t) {
-    var tmpl = "<span class='bar {{ (sw foo \"a\" no ) }} baz'></span>";
+    var tmpl = "<span class='bar {{ (if foo \"a\" no ) }} baz'></span>";
 
     testBinding(tmpl)
         .context({ foo: true, no: "b" }).assert(hasClasses('bar', 'a', 'baz'))
@@ -104,9 +104,9 @@ test('booleanAttribute - initially false', function (t) {
 test('switch (equivalent)', function (t) {
     var tmpl = s(function () {/*
         <span>
-            {{#if (equal foo "a")}} a content {{/if}}
-            {{#if (equal foo "b")}} b content {{/if}}
-            {{#if (equal foo "c")}} c content {{/if}}
+            {{#if (=== foo "a")}} a content {{/if}}
+            {{#if (=== foo "b")}} b content {{/if}}
+            {{#if (=== foo "c")}} c content {{/if}}
         </span>
     */});
 

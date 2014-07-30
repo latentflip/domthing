@@ -410,3 +410,49 @@ test('compiles this:', function (t) {
     });
 });
 
+
+test('compile expressions', function (t) {
+    var tmpl = s(function () {/*
+        <div>
+            <span class='mult'>{{ (* foo 2) }}</span>
+            <span class='div'>{{ (/ foo 2) }}</span>
+            <span class='add'>{{ (+ foo 2) }}</span>
+            <span class='sub'>{{ (- foo 2) }}</span>
+            <span class='mod'>{{ (% foo 2) }}</span>
+
+            <span class='less'>{{ (if (< foo 2) "true" "false") }}</span>
+            <span class='more'>{{ (if (> foo 2) "true" "false") }}</span>
+
+            <span class='less-eq'>{{ (if (leq foo 4) "true" "false") }}</span>
+            <span class='more-eq'>{{ (if (geq foo 4) "true" "false") }}</span>
+
+            <span class='not'>{{ (if (not foo) "true" "false") }}</span>
+
+        </div>
+    */});
+
+    var context = {
+        foo: 4
+    };
+
+    parsePrecompileAndAppend(tmpl, context, builtinHelpers, function (err, window) {
+        var qs = window.document.querySelector.bind(window.document);
+
+        //No source
+        t.equal(qs('.mult').innerHTML, '8');
+        t.equal(qs('.div').innerHTML, '2');
+        t.equal(qs('.add').innerHTML, '6');
+        t.equal(qs('.sub').innerHTML, '2');
+        t.equal(qs('.mod').innerHTML, '0');
+
+        t.equal(qs('.less').innerHTML, 'false');
+        t.equal(qs('.more').innerHTML, 'true');
+
+        t.equal(qs('.less-eq').innerHTML, 'true');
+        t.equal(qs('.more-eq').innerHTML, 'true');
+
+        t.equal(qs('.not').innerHTML, 'false');
+
+        t.end();
+    });
+});

@@ -33,7 +33,6 @@ test('href is escaped with double-curlies', function (t) {
     };
 
     parsePrecompileAndAppend(tmpl, context, builtinHelpers, function (err, window) {
-        console.log(window._console);
         var el = window.document.querySelector('a');
         t.equal(el.getAttribute('href'), 'unsafe:javascript:alert(1)');
         t.end();

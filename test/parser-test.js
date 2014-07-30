@@ -295,6 +295,18 @@ test('parses expressions in bindings', function (t) {
     ]));
 });
 
+test('parses expressions in text nodes', function (t) {
+    var tmpl = "<span>{{ (if foo \"bar\" baz) }}</span>";
+
+    t.astEqual(tmpl, AST.Template([
+        AST.Element('span', [
+            AST.TextNode(
+                AST.Expression('if', [AST.Binding('foo'), AST.Literal("bar"), AST.Binding("baz")])
+            )
+        ])
+    ]));
+});
+
 test('parses expressions in bindings', function (t) {
     var tmpl = "<span class='{{ (log foo.bar )}}'></span>";
 
