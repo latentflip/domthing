@@ -88,6 +88,20 @@ test('parses raw html bindings', function (t) {
     ]));
 });
 
+test('parses raw expressions in attributes', function (t) {
+    t.astEqual('<a href="{{{ (if model.foo "a" "b") }}}"></a>', AST.Template([
+        AST.Element('a', {
+            href: AST.Expression('safe', [
+                AST.Expression('if', [
+                    AST.Binding('model.foo'),
+                    AST.Literal('a'),
+                    AST.Literal('b')
+                ])
+            ])
+        })
+    ]));
+});
+
 test('parses expressions in attributes', function (t) {
     t.astEqual("<a href='{{foo}}' id='{{ baz}}' class='bar'></a>", AST.Template([
         AST.Element('a', {
@@ -294,7 +308,7 @@ test('parses sub-expressions', function (t) {
 });
 
 test('parses expressions in bindings', function (t) {
-    var tmpl = "<span class='{{ (sw foo \"bar\" baz) }}'></span>";
+    var tmpl = '<span class="{{ (sw foo "bar" baz) }}"></span>';
 
     t.astEqual(tmpl, AST.Template([
         AST.Element('span', {
@@ -304,7 +318,7 @@ test('parses expressions in bindings', function (t) {
 });
 
 test('parses expressions in text nodes', function (t) {
-    var tmpl = "<span>{{ (if foo \"bar\" baz) }}</span>";
+    var tmpl = '<span>{{ (if foo "bar" baz) }}</span>';
 
     t.astEqual(tmpl, AST.Template([
         AST.Element('span', [

@@ -1,8 +1,8 @@
 {
     "framework": "tap",
     "src_files": [
-        "lib/*.js",
-        "test/*.js"
+        "lib/**/*.js",
+        "test/**/*.js"
     ],
     "serve_files": [
         "bundle.js"
