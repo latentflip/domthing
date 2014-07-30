@@ -233,12 +233,65 @@ templates['test'] = function (context, runtime) {
             runtime.hooks.EXPRESSION('concat', [
               runtime.hooks.EVENTIFY_LITERAL.call(template, "foo"),
               runtime.hooks.EVENTIFY_LITERAL.call(template, " "),
+              runtime.hooks.EXPRESSION('if', [
+                runtime.hooks.EVENTIFY_BINDING.call(template, context, 'foo'),
+                runtime.hooks.EVENTIFY_LITERAL.call(template, "a"),
+                runtime.hooks.EVENTIFY_LITERAL.call(template, "b"),
+              ]),
             ])
           );
           element.setAttribute('class', expr.value ? runtime.hooks.ESCAPE_FOR_ATTRIBUTE('class', expr.value) : '');
           expr.on('change', function (v) {
             element.setAttribute('class', v ? runtime.hooks.ESCAPE_FOR_ATTRIBUTE('class', v) : '');
           });
+          (function (parent) {
+            (function (parent) {
+              var expr = (
+                runtime.hooks.EVENTIFY_LITERAL.call(template, "A")
+              );
+              var node = document.createTextNode((expr.value||expr.value===0) ? expr.value : '');
+              expr.on('change', function (text) { node.data = (text||text===0) ? text : ''; });
+              parent.appendChild(node);
+            })(parent);
+          })(element);
+          parent.appendChild(element);
+        })(parent);
+        (function (parent) {
+          var expr = (
+            runtime.hooks.EVENTIFY_LITERAL.call(template, " ")
+          );
+          var node = document.createTextNode((expr.value||expr.value===0) ? expr.value : '');
+          expr.on('change', function (text) { node.data = (text||text===0) ? text : ''; });
+          parent.appendChild(node);
+        })(parent);
+        (function (parent) {
+          var element = document.createElement('div');
+          var expr;
+          expr = (
+            runtime.hooks.EXPRESSION('concat', [
+              runtime.hooks.EVENTIFY_LITERAL.call(template, "foo"),
+              runtime.hooks.EVENTIFY_LITERAL.call(template, " "),
+              runtime.hooks.EXPRESSION('if', [
+                runtime.hooks.EVENTIFY_BINDING.call(template, context, 'foo'),
+                runtime.hooks.EVENTIFY_LITERAL.call(template, "a"),
+                runtime.hooks.EVENTIFY_LITERAL.call(template, "b"),
+              ]),
+            ])
+          );
+          element.setAttribute('class', expr.value ? runtime.hooks.ESCAPE_FOR_ATTRIBUTE('class', expr.value) : '');
+          expr.on('change', function (v) {
+            element.setAttribute('class', v ? runtime.hooks.ESCAPE_FOR_ATTRIBUTE('class', v) : '');
+          });
+          (function (parent) {
+            (function (parent) {
+              var expr = (
+                runtime.hooks.EVENTIFY_LITERAL.call(template, "A")
+              );
+              var node = document.createTextNode((expr.value||expr.value===0) ? expr.value : '');
+              expr.on('change', function (text) { node.data = (text||text===0) ? text : ''; });
+              parent.appendChild(node);
+            })(parent);
+          })(element);
           parent.appendChild(element);
         })(parent);
         (function (parent) {

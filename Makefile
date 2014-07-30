@@ -11,7 +11,7 @@ runtime.bundle.js: force
 demo/templates.js: force
 	./bin/domthing --no-runtime demo/templates > demo/templates.js
 
-serve-demo: force
+serve-demo: force demo/templates.js
 	beefy demo/demo.js --open
 
 test: runtime.bundle.js
