@@ -1,9 +1,12 @@
 - [x] Basic compilation
 - [x] Basic bindings
 - [x] Ampersand Integration
-- [ ] Handling {{{ html }}}
+- [x] Handling {{{ html }}}
 - [x] Handling weird things like <input type='checkbox' checked='{{foo.active}}'>
-- [ ] Securing attributes etc
+- [x] Securing attributes etc
 - [ ] Documenting {{ (expressions foo "bar") }}
-- [ ] `each`
-- [ ] Subviews?
+- [ ] ~~`each`~~
+- [ ] ~~Subviews?~~
+- [ ] Improve parser error messages for broken expressions
+- [ ] Can we handle both ' and " inside expressions?
+- [ ] Can we handle unquoted bindings?
