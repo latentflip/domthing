@@ -1,7 +1,8 @@
 <div>
     <input type="checkbox" checked="{{foo}}">
 
-    <div class='{{ (concat "foo" " ") }}'></div>
+    <div class='{{ (concat "foo" " " (if foo "a" "b")) }}'>A</div>
+    <div class='{{ (concat "foo" " " (if foo "a" "b")) }}'>A</div>
 
     {{#if (not (not foo))}}
         <a>hi</a>

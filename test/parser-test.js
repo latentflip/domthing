@@ -8,6 +8,8 @@ test.Test.prototype.astEqual = function (tmpl, expected) {
     var t = this;
     t.plan(2);
     parse(tmpl, function (err, ast) {
+        console.log(JSON.stringify(expected, null, 2));
+        console.log(JSON.stringify(ast, null, 2));
         t.notOk(err);
         t.deepEqual(ast, expected);
     });
@@ -57,7 +59,7 @@ test('parses this properly', function (t) {
 
             AST.Element('a', [
                 AST.TextNode(AST.Literal('hello'))
-            ]),    
+            ]),
             AST.TextNode(AST.Literal(' ')),
             AST.TextNode(AST.Binding('foo')),
             AST.TextNode(AST.Literal(' ')),
@@ -76,6 +78,28 @@ test('parses attributes', function (t) {
             href: AST.Literal('foo'),
             class: AST.Literal('bar'),
             id: AST.Literal('baz'),
+        })
+    ]));
+});
+
+test('parses raw html bindings', function (t) {
+    t.astEqual('<div>{{{ foo }}}</div>', AST.Template([
+        AST.Element('div', [
+            AST.DocumentFragment(AST.Binding('foo'))
+        ])
+    ]));
+});
+
+test('parses raw expressions in attributes', function (t) {
+    t.astEqual("<a href='{{{ (if model.foo \"a\" \"b\") }}}'></a>", AST.Template([
+        AST.Element('a', {
+            href: AST.Expression('safe', [
+                AST.Expression('if', [
+                    AST.Binding('model.foo'),
+                    AST.Literal('a'),
+                    AST.Literal('b')
+                ])
+            ])
         })
     ]));
 });
@@ -286,7 +310,7 @@ test('parses sub-expressions', function (t) {
 });
 
 test('parses expressions in bindings', function (t) {
-    var tmpl = "<span class='{{ (sw foo \"bar\" baz) }}'></span>";
+    var tmpl = "<span class='{{ (sw foo \"bar\" baz)}}'></span>";
 
     t.astEqual(tmpl, AST.Template([
         AST.Element('span', {
@@ -295,7 +319,19 @@ test('parses expressions in bindings', function (t) {
     ]));
 });
 
-test('parses expressions in bindings', function (t) {
+test('parses expressions in text nodes', function (t) {
+    var tmpl = '<span>{{ (if foo "bar" baz) }}</span>';
+
+    t.astEqual(tmpl, AST.Template([
+        AST.Element('span', [
+            AST.TextNode(
+                AST.Expression('if', [AST.Binding('foo'), AST.Literal("bar"), AST.Binding("baz")])
+            )
+        ])
+    ]));
+});
+
+test('parses log expressions in bindings', function (t) {
     var tmpl = "<span class='{{ (log foo.bar )}}'></span>";
 
     t.astEqual(tmpl, AST.Template([
