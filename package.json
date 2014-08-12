@@ -1,7 +1,7 @@
 {
   "name": "domthing",
   "description": "A simple, fast & safe, mustache/handlebars like templating engine with data-binding hooks built in.",
-  "version": "0.2.0-rc1",
+  "version": "0.2.0-rc2",
   "bin": "bin/domthing",
   "bugs": {
     "url": "https://github.com/latentflip/domthing/issues"
