@@ -38,5 +38,6 @@
   },
   "scripts": {
     "test": "faucet && testem ci"
-  }
+  },
+  "browser": "./runtime"
 }
