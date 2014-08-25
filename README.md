@@ -69,7 +69,7 @@ someElement.innerHTML = template({ me: { url: 'twitter.com/philip_roberts' } });
 
 This works, but it's not very smart. If you want to update your page if the context data changes you have to rerender the template (slow), or you have to insert css selector hooks everywhere so that you can update specific elements, a la: `<a role="profile-link" href="<%= me.url %>">My Profile</a>` and then `$('[role=profile-link]').text(me.url)`.
 
-You've also now split the knowledge of where data goes into the dom in the template into two places, once in the template, and once somewhere in JavaScript land. Or you just do it in JavaScript land and your templates look a little empty. You also better hope nobody changes your html ina way that breaks your css selector code, or you'll be sad :(. _Also_ you've now made it harder for frontend devs who might be comfortable editing templates & styling, but less so tweaking css selector bindings, to actually edit where data goes in your templates.
+You've also now split the knowledge of where data goes into the dom in the template into two places, once in the template, and once somewhere in JavaScript land. Or you just do it in JavaScript land and your templates look a little empty. You also better hope nobody changes your html in a way that breaks your css selector code, or you'll be sad :(. _Also_ you've now made it harder for frontend devs who might be comfortable editing templates & styling, but less so tweaking css selector bindings, to actually edit where data goes in your templates.
 
 So, what if your template engine actually understood how the dom worked, and actually returned DOM elements:
 
