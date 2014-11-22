@@ -12,6 +12,30 @@ test('simple functions', function (t) {
     );
 
     t.deepEqual(
+        parse("(concat 'foo' 'bar')"),
+        AST.Expression('concat', [
+            AST.Literal('foo'),
+            AST.Literal('bar')
+        ])
+    );
+
+    t.deepEqual(
+        parse('(concat "fo\'o" "ba\\"r")'),
+        AST.Expression('concat', [
+            AST.Literal('fo\'o'),
+            AST.Literal('ba"r')
+        ])
+    );
+
+    t.deepEqual(
+        parse("(concat 'fo\\'o' 'ba\"r')"),
+        AST.Expression('concat', [
+            AST.Literal('fo\'o'),
+            AST.Literal('ba"r')
+        ])
+    );
+
+    t.deepEqual(
         parse('(sw foo "bar" baz)'),
         AST.Expression('sw', [
             AST.Binding('foo'),
