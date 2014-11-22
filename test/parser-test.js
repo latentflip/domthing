@@ -236,11 +236,13 @@ test('handles blocks in text', function (t) {
 test('parses nested if/else statements', function (t) {
     var tmpl = [
         "{{#if foo }}",
-        "    {{#if bar }}",
-        "        <a></a>",
-        "    {{#else }}",
-        "        <c></c>",
-        "   {{/if}}",
+        "    <div>",
+        "        {{#if bar }}",
+        "            <a></a>",
+        "        {{#else }}",
+        "            <c></c>",
+        "        {{/if}}",
+        "    </div>",
         "{{#else }}",
         "    <b></b>",
         "{{/if}}",
@@ -249,13 +251,17 @@ test('parses nested if/else statements', function (t) {
     t.astEqual(tmpl, AST.Template([
         AST.BlockStatement('if', AST.Binding('foo'), [
             AST.TextNode(AST.Literal(' ')),
-            AST.BlockStatement('if', AST.Binding('bar'), [
+            AST.Element('div', [
                 AST.TextNode(AST.Literal(' ')),
-                AST.Element('a'),
-                AST.TextNode(AST.Literal(' ')),
-            ], [
-                AST.TextNode(AST.Literal(' ')),
-                AST.Element('c'),
+                AST.BlockStatement('if', AST.Binding('bar'), [
+                    AST.TextNode(AST.Literal(' ')),
+                    AST.Element('a'),
+                    AST.TextNode(AST.Literal(' ')),
+                ], [
+                    AST.TextNode(AST.Literal(' ')),
+                    AST.Element('c'),
+                    AST.TextNode(AST.Literal(' ')),
+                ]),
                 AST.TextNode(AST.Literal(' ')),
             ]),
             AST.TextNode(AST.Literal(' ')),
