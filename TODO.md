@@ -8,5 +8,5 @@
 - [ ] ~~`each`~~
 - [ ] ~~Subviews?~~
 - [ ] Improve parser error messages for broken expressions
-- [ ] Can we handle both ' and " inside expressions?
+- [x] Can we handle both ' and " inside expressions?
 - [ ] Can we handle unquoted bindings?
