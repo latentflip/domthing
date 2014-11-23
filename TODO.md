@@ -9,4 +9,4 @@
 - [ ] ~~Subviews?~~
 - [ ] Improve parser error messages for broken expressions
 - [x] Can we handle both ' and " inside expressions?
-- [ ] Can we handle unquoted bindings?
+- [x] Can we handle unquoted bindings?
