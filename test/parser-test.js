@@ -4,12 +4,14 @@ var AST = require('../lib/AST');
 
 var s = require('multiline');
 
-test.Test.prototype.astEqual = function (tmpl, expected) {
+test.Test.prototype.astEqual = function (tmpl, expected, noplan) {
     var t = this;
-    t.plan(2);
+    if (!noplan) {
+        t.plan(2);
+    }
     parse(tmpl, function (err, ast) {
-        console.log(JSON.stringify(expected, null, 2));
-        console.log(JSON.stringify(ast, null, 2));
+        //console.log(JSON.stringify(expected, null, 2));
+        //console.log(JSON.stringify(ast, null, 2));
         t.notOk(err);
         t.deepEqual(ast, expected);
     });
@@ -360,4 +362,41 @@ test('handles hyphens somehow in bindings', function (t) {
             })
         ])
     ]));
+});
+
+test('parses bindings without quotes', function (t) {
+    t.plan(6);
+
+    t.astEqual('<a href={{ foo }}></a>', AST.Template([
+        AST.Element('a', {
+            href: AST.Binding('foo')
+        })
+    ]), true);
+
+    t.astEqual('<a href={{ (foo "foo" bar) }}></a>', AST.Template([
+        AST.Element('a', {
+            href: AST.Expression('foo', [
+                AST.Literal('foo'),
+                AST.Binding('bar')
+            ])
+        })
+    ]), true);
+
+    t.astEqual('<a href="/thing" class="{{ (if (eq aString "HELLO\\"") "active" \'foo\' bar) }}" bar="baz">{{foo}}</a>', AST.Template([
+        AST.Element('a', {
+            href: AST.Literal('/thing'),
+            class: AST.Expression('if', [
+                AST.Expression('eq', [
+                    AST.Binding('aString'),
+                    AST.Literal('HELLO"')
+                ]),
+                AST.Literal('active'),
+                AST.Literal('foo'),
+                AST.Binding('bar')
+            ]),
+            bar: AST.Literal("baz")
+        }, [
+            AST.TextNode(AST.Binding('foo'))
+        ])
+    ]), true);
 });
