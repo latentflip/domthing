@@ -10,5 +10,5 @@
     "before_tests": "browserify test/client/* -o bundle.js",
     "after_tests": "rm bundle.js",
     "launch_in_dev": ["Chrome", "Firefox"],
-    "launch_in_ci": ["Chrome", "Firefox"]
+    "launch_in_ci": ["Firefox"]
 }
