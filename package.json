@@ -24,7 +24,8 @@
     "jsdom": "^0.10.6",
     "multiline": "^0.3.4",
     "pegjs": "^0.8.0",
-    "tape": "^2.13.1"
+    "tape": "^2.13.1",
+    "testem": "^0.6.23"
   },
   "directories": {
     "test": "test"
