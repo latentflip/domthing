@@ -9,7 +9,9 @@ var data = {
     aModel: {
         foo: 'foo'
     },
-    active: true
+    active: true,
+    things: [1,2,3],
+    joinArgs: [" | "]
 };
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -30,6 +32,12 @@ document.addEventListener('DOMContentLoaded', function () {
     }, 750);
 
     setInterval(function () {
-        template.update('aModel.foo', Date.now());
+        template.update('aModel.foo', "a string: " + Date.now());
     }, 250);
+
+    var i = 0;
+    setInterval(function () {
+        i++;
+        template.update('joinArgs', i % 2 === 0 ? [" / "] : [" | "]);
+    }, 600);
 });

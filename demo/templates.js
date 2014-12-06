@@ -302,6 +302,64 @@ templates['test'] = function (context, runtime) {
           expr.on('change', function (text) { node.data = (text||text===0) ? text : ''; });
           parent.appendChild(node);
         })(parent);
+        (function (parent) {
+          var expr = (
+            runtime.hooks.EXPRESSION('call', [
+              runtime.hooks.EVENTIFY_BINDING.call(template, context, 'aModel.foo'),
+              runtime.hooks.EVENTIFY_LITERAL.call(template, "toUpperCase"),
+            ])
+          );
+          var node = document.createTextNode((expr.value||expr.value===0) ? expr.value : '');
+          expr.on('change', function (text) { node.data = (text||text===0) ? text : ''; });
+          parent.appendChild(node);
+        })(parent);
+        (function (parent) {
+          var expr = (
+            runtime.hooks.EVENTIFY_LITERAL.call(template, " ")
+          );
+          var node = document.createTextNode((expr.value||expr.value===0) ? expr.value : '');
+          expr.on('change', function (text) { node.data = (text||text===0) ? text : ''; });
+          parent.appendChild(node);
+        })(parent);
+        (function (parent) {
+          var expr = (
+            runtime.hooks.EXPRESSION('call', [
+              runtime.hooks.EVENTIFY_BINDING.call(template, context, 'things'),
+              runtime.hooks.EVENTIFY_LITERAL.call(template, "join"),
+            ])
+          );
+          var node = document.createTextNode((expr.value||expr.value===0) ? expr.value : '');
+          expr.on('change', function (text) { node.data = (text||text===0) ? text : ''; });
+          parent.appendChild(node);
+        })(parent);
+        (function (parent) {
+          var expr = (
+            runtime.hooks.EVENTIFY_LITERAL.call(template, " ")
+          );
+          var node = document.createTextNode((expr.value||expr.value===0) ? expr.value : '');
+          expr.on('change', function (text) { node.data = (text||text===0) ? text : ''; });
+          parent.appendChild(node);
+        })(parent);
+        (function (parent) {
+          var expr = (
+            runtime.hooks.EXPRESSION('apply', [
+              runtime.hooks.EVENTIFY_BINDING.call(template, context, 'things'),
+              runtime.hooks.EVENTIFY_LITERAL.call(template, "join"),
+              runtime.hooks.EVENTIFY_BINDING.call(template, context, 'joinArgs'),
+            ])
+          );
+          var node = document.createTextNode((expr.value||expr.value===0) ? expr.value : '');
+          expr.on('change', function (text) { node.data = (text||text===0) ? text : ''; });
+          parent.appendChild(node);
+        })(parent);
+        (function (parent) {
+          var expr = (
+            runtime.hooks.EVENTIFY_LITERAL.call(template, " ")
+          );
+          var node = document.createTextNode((expr.value||expr.value===0) ? expr.value : '');
+          expr.on('change', function (text) { node.data = (text||text===0) ? text : ''; });
+          parent.appendChild(node);
+        })(parent);
         runtime.hooks.HELPER('if', [
           parent,
           context,

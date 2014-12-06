@@ -37,7 +37,8 @@
     "url": "git://github.com/latentflip/domthing"
   },
   "scripts": {
-    "test": "faucet && testem ci"
+    "test": "faucet && testem ci",
+    "start": "make && beefy demo/demo.js"
   },
   "browser": "./runtime"
 }

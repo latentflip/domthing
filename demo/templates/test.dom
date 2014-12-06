@@ -4,6 +4,10 @@
     <div class='{{ (concat "foo" " " (if foo "a" "b")) }}'>A</div>
     <div class='{{ (concat "foo" " " (if foo "a" "b")) }}'>A</div>
 
+    {{ (call aModel.foo 'toUpperCase') }}
+    {{ (call things 'join') }}
+    {{ (apply things 'join' joinArgs) }}
+
     {{#if (not (not foo))}}
         <a>hi</a>
     {{#else}}
