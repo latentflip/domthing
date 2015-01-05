@@ -73,7 +73,7 @@ You've also now split the knowledge of where data goes into the dom in the templ
 
 So, what if your template engine actually understood how the dom worked, and actually returned DOM elements:
 
-```
+```js
 //warning, code for illustrative purposes only:
 function template(context) {
     var element = document.createElement('a');
@@ -85,7 +85,7 @@ function template(context) {
 
 And now that you had actual references to real elements, you could just bind them to data changes directly, no css selectors required:
 
-```
+```js
 //warning, code for illustrative purposes only:
 function template(context) {
     var element = document.createElement('a');
