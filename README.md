@@ -1,6 +1,12 @@
-# dömthing
+## Deprecation notice
 
-(pronounced with as many diphthongs as possible, e.g: do-wum-thay-ang)
+Due to the growth in popularity of react, and my own enjoyment using it, domthing is effectively being unused and unmaintained by me at this point.
+
+If you are interested in picking it up and developing it let me know, otherwise, sorry.
+
+---
+
+# domthing
 
 ## What is this?
 
